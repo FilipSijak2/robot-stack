@@ -1,0 +1,41 @@
+version: '3.9'
+services:
+  nav_cont:
+    image: nav_cont:v0.0.1-dev  # Koristite ime i tag Docker image-a
+    container_name: nav_cont
+    network_mode: host  # ROS 2 koristi DDS, koji zahtijeva host mrežu
+    environment:
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+    depends_on:
+      - database_cont
+      - slam_cont
+
+  database_cont:
+    image: postgres:15  # Koristite službeni PostgreSQL image
+    container_name: database_cont
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: maps
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./config/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - ros_network
+
+  slam_cont:
+    image: slam_cont:v0.0.1-rc1  # Koristite ime i tag Docker image-a
+    container_name: slam_cont
+    network_mode: host  # ROS 2 zahtijeva host mrežu
+    depends_on:
+      - database_cont
+    volumes:
+      - ./config/slam_params.yaml:/app/slam_params.yaml
+
+volumes:
+  db_data:
+
+networks:
+  ros_network:
