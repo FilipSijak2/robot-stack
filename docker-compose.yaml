@@ -26,7 +26,7 @@ services:
       - ros_network
 
   slam_cont:
-    image: slam_cont:v0.0.1.rc4-dev  # Koristite ime i tag Docker image-a
+    image: slam_cont:v0.0.1.rc5-dev  # Koristite ime i tag Docker image-a
     container_name: slam_cont
     network_mode: host  # ROS 2 zahtijeva host mrežu
     depends_on:
