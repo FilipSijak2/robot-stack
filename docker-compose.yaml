@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   nav_cont:
-    image: nav_cont:v0.0.1.rc3-dev  # Koristite ime i tag Docker image-a
+    image: nav_cont:v0.0.1.rc4-dev  # Koristite ime i tag Docker image-a
     container_name: nav_cont
     network_mode: host  # ROS 2 koristi DDS, koji zahtijeva host mrežu
     environment:
