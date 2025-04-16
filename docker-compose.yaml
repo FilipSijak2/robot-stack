@@ -32,7 +32,8 @@ services:
     depends_on:
       - database_cont
     volumes:
-      - ./config/slam_params.yaml:/app/slam_params.yaml
+      - ./config/slam_params.yaml:/app/slam_params.yaml  # Mapiranje konfiguracijske datoteke
+      - ./maps:/app/maps  # Mapiranje direktorija na hostu na direktorij u containeru
 
 volumes:
   db_data:
