@@ -25,6 +25,17 @@ services:
     networks:
       - ros_network
 
+  laser_driver:
+    image: driver:v0.0.1.rc1-dev  # Koristite ime i tag Docker image-a
+    environment:
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+    container_name: laser_driver_cont
+    devices:
+      - "/dev/ttyUSB0:/dev/ttyUSB0"  # Mapiranje serijskog uređaja
+    network_mode: host  # ROS 2 koristi DDS, koji zahtijeva host mrežu
+    depends_on:
+      - database_cont
+
   slam_cont:
     image: slam_cont:v0.0.1.rc5-dev  # Koristite ime i tag Docker image-a
     container_name: slam_cont
