@@ -52,13 +52,15 @@ services:
     restart: always
 
   rosbridge_websocket:
-    image: rosbridge/rosbridge_websocket:latest  # Zamijeni s odgovarajućim image-om za rosbridge_websocket
-    container_name: rosbridge_websocket_cont
+    image: rosbridge_cont:v0.0.1.rc1-dev  # Zamijeni s odgovarajućim image-om za rosbridge_websocket
+    container_name: rosbridget_cont
     environment:
-      - ROS_HOSTNAME=rosbridge_websocket_cont
+      - ROS_HOSTNAME=100.108.17.54
       - ROS_MASTER_URI=http://rosbridge_websocket_cont:11311
     ports:
       - "9090:9090"  # Standardni port za rosbridge websocket
+    volumes:
+      - ./config:/config  # Mapiraš cijeli config direktorij sa svih konfiguracijama
     network_mode: host  # ROS 2 koristi DDS, koji zahtijeva host mrežu
     restart: always
 
