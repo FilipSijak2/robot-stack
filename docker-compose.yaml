@@ -9,6 +9,7 @@ services:
     depends_on:
       - database_cont
       - slam_cont
+    restart: always
 
   database_cont:
     image: postgres:15  # Koristite službeni PostgreSQL image
@@ -24,9 +25,10 @@ services:
       - db_data:/var/lib/postgresql/data
     networks:
       - ros_network
+    restart: always
 
   laser_driver:
-    image: driver_cont:v0.0.1.rc7-dev  # Koristite ime i tag Docker image-a
+    image: driver_cont:v0.0.1.rc8-dev  # Koristite ime i tag Docker image-a
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
     container_name: laser_driver_cont
@@ -35,6 +37,7 @@ services:
     network_mode: host  # ROS 2 koristi DDS, koji zahtijeva host mrežu
     depends_on:
       - database_cont
+    restart: always
 
   slam_cont:
     image: slam_cont:v0.0.1.rc5-dev  # Koristite ime i tag Docker image-a
@@ -45,6 +48,7 @@ services:
     volumes:
       - ./config/slam_params.yaml:/app/slam_params.yaml  # Mapiranje konfiguracijske datoteke
       - ./maps:/app/maps  # Mapiranje direktorija na hostu na direktorij u containeru
+    restart: always
 
 volumes:
   db_data:
