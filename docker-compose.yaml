@@ -32,6 +32,7 @@ services:
     image: driver_cont:v0.0.1.rc8-dev  # Koristite ime i tag Docker image-a
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_DOMAIN_ID=0  # Mora biti isti kao u rosbridge_websocket
     container_name: laser_driver_cont
     devices:
       - "/dev/ttyUSB0:/dev/ttyUSB0"  # Mapiranje serijskog uređaja
@@ -53,14 +54,12 @@ services:
 
   rosbridge_websocket:
     image: rosbridge_cont:v0.0.1.rc1-dev  # Zamijeni s odgovarajućim image-om za rosbridge_websocket
-    container_name: rosbridget_cont
+    container_name: rosbridge_websocket_cont
     environment:
-      - ROS_HOSTNAME=100.108.17.54
-      - ROS_MASTER_URI=http://rosbridge_websocket_cont:11311
+      - ROS_DOMAIN_ID=0  # Postavi isti ROS_DOMAIN_ID za sve containere
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
     ports:
       - "9090:9090"  # Standardni port za rosbridge websocket
-    volumes:
-      - ./config:/config  # Mapiraš cijeli config direktorij sa svih konfiguracijama
     network_mode: host  # ROS 2 koristi DDS, koji zahtijeva host mrežu
     restart: always
 
