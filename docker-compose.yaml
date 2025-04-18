@@ -26,7 +26,7 @@ services:
       - ros_network
 
   laser_driver:
-    image: driver_cont:v0.0.1.rc3-dev  # Koristite ime i tag Docker image-a
+    image: driver_cont:v0.0.1.rc4-dev  # Koristite ime i tag Docker image-a
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
     container_name: laser_driver_cont
