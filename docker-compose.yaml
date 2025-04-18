@@ -53,7 +53,7 @@ services:
     restart: always
 
   rosbridge_websocket:
-    image: rosbridge_cont:v0.0.1.rc2-dev  # Zamijeni s odgovarajućim image-om za rosbridge_websocket
+    image: rosbridge_cont:v0.0.1.rc3-dev  # Zamijeni s odgovarajućim image-om za rosbridge_websocket
     container_name: rosbridge_websocket_cont
     environment:
       - ROS_DOMAIN_ID=0  # Postavi isti ROS_DOMAIN_ID za sve containere
