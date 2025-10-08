@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   nav_cont:
-    image: nav_cont:v0.0.1.rc4-dev  # Koristite ime i tag Docker image-a
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/nav:${NAV_TAG}
     container_name: nav_cont
     network_mode: host  # ROS 2 koristi DDS, koji zahtijeva host mrežu
     environment:
@@ -13,23 +13,25 @@ services:
     restart: always
 
   database_cont:
-    image: postgres:15  # Koristite službeni PostgreSQL image
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/db:${DB_TAG}
     container_name: database_cont
+    network_mode: host
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: maps
-    ports:
-      - "5432:5432"
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+      PGDATA: /srv/db
     volumes:
-      - ./config/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - db_data:/var/lib/postgresql/data
-    networks:
-      - ros_network
+      - ./srv:/srv
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   laser_driver:
-    image: driver_cont:v0.0.1.rc8-dev  # Koristite ime i tag Docker image-a
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/driver:${DRIVER_TAG}
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
       - ROS_DOMAIN_ID=0  # Mora biti isti kao u rosbridge_websocket
@@ -42,18 +44,29 @@ services:
     restart: always
 
   slam_cont:
-    image: slam_cont:v0.0.1.rc5-dev  # Koristite ime i tag Docker image-a
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/slam:${SLAM_TAG}
     container_name: slam_cont
     network_mode: host  # ROS 2 zahtijeva host mrežu
     depends_on:
       - database_cont
     volumes:
-      - ./config/slam_params.yaml:/app/slam_params.yaml  # Mapiranje konfiguracijske datoteke
-      - ./maps:/app/maps  # Mapiranje direktorija na hostu na direktorij u containeru
+      - ./config/slam_params.yaml:/app/slam_params.yaml  # Konfiguracija
+      - ./srv:/srv  # Trajni podaci (maps & ostalo)
+    environment:
+      - MAP_ROOT=${MAP_ROOT}
+      - DB_HOST=localhost
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f slam_toolbox >/dev/null || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
   rosbridge_websocket:
-    image: rosbridge_cont:v0.0.1.rc5-dev  # Zamijeni s odgovarajućim image-om za rosbridge_websocket
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/rosbridge:${ROSBRIDGE_TAG}
     container_name: rosbridge_websocket_cont
     environment:
       - ROS_DOMAIN_ID=0  # Postavi isti ROS_DOMAIN_ID za sve containere
@@ -63,9 +76,14 @@ services:
     network_mode: host  # ROS 2 koristi DDS, koji zahtijeva host mrežu
     restart: always
 
-volumes:
-  db_data:
+  sensor_fusion_cont:
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/sensor_fusion:${SENSOR_FUSION_TAG}
+    container_name: sensor_fusion_cont
+    network_mode: host
+    restart: always
+    depends_on:
+      - database_cont
+      - slam_cont
 
-networks:
-  ros_network:
+volumes: {}
 
