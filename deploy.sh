@@ -49,7 +49,7 @@ check_container(){
   echo "FAIL"; return 1
 }
 
-for c in database_cont slam_cont nav_cont laser_driver_cont rosbridge_websocket_cont sensor_fusion_cont; do
+for c in database_cont slam_cont nav_cont laser_driver_cont rosbridge_websocket_cont sensor_fusion_cont micro_ros_agent; do
   if ! check_container "$c"; then FAIL=1; fi
 done
 

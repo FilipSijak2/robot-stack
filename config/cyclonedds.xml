@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CycloneDX xmlns="https://dds.eclipse.org/cyclonedx/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dds.eclipse.org/cyclonedx/ https://raw.githubusercontent.com/eclipse-cyclonedx/cyclonedx/master/etc/cyclonedds.xsd">
+    <Domain id="any">
+        <General>
+            <NetworkInterfaceAddress>auto</NetworkInterfaceAddress>
+            <AllowMulticast>true</AllowMulticast>
+            <MaxMessageSize>65500B</MaxMessageSize>
+            <FragmentSize>4000B</FragmentSize>
+        </General>
+        
+        <Internal>
+            <Watermarks>
+                <WhcHigh>500kB</WhcHigh>
+                <WhcHighInit>30kB</WhcHighInit>
+                <WhcAdaptive>true</WhcAdaptive>
+            </Watermarks>
+            <LivelinessMonitoring>true</LivelinessMonitoring>
+            <MonitorPort>-1</MonitorPort>
+        </Internal>
+        
+        <Discovery>
+            <Tag>${HOSTNAME}</Tag>
+            <ParticipantIndex>auto</ParticipantIndex>
+            <MaxAutoParticipantIndex>30</MaxAutoParticipantIndex>
+            <SPDPMulticastAddress>239.255.0.1</SPDPMulticastAddress>
+            <SPDPInterval>30s</SPDPInterval>
+            <DefaultMulticastAddress>auto</DefaultMulticastAddress>
+            <Ports>
+                <Base>7400</Base>
+                <DomainGain>250</DomainGain>
+                <ParticipantGain>3</ParticipantGain>
+                <MulticastMetaOffset>0</MulticastMetaOffset>
+                <UnicastMetaOffset>10</UnicastMetaOffset>
+                <MulticastDataOffset>1</MulticastDataOffset>
+                <UnicastDataOffset>11</UnicastDataOffset>
+            </Ports>
+        </Discovery>
+        
+        <Tracing>
+            <Verbosity>config</Verbosity>
+            <OutputFile>stdout</OutputFile>
+        </Tracing>
+    </Domain>
+</CycloneDX>

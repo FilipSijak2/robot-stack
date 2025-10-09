@@ -1,0 +1,66 @@
+# ROS2 logging configuration for robot system
+# Place this in /opt/ros/humble/share/rcl_logging_spdlog/config/
+
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  detailed:
+    format: '[{asctime}] [{levelname:<8}] [{name}] {message}'
+    style: '{'
+  simple:
+    format: '[{levelname:<8}] {name}: {message}'
+    style: '{'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: simple
+    stream: ext://sys.stdout
+    
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: detailed
+    filename: /srv/logs/robot.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+    
+  error_file:
+    class: logging.handlers.RotatingFileHandler
+    level: ERROR
+    formatter: detailed
+    filename: /srv/logs/robot_errors.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+
+loggers:
+  rclcpp:
+    level: INFO
+    handlers: [console, file]
+    propagate: no
+    
+  nav2:
+    level: INFO
+    handlers: [console, file, error_file]
+    propagate: no
+    
+  slam_toolbox:
+    level: INFO
+    handlers: [console, file]
+    propagate: no
+    
+  robot_localization:
+    level: INFO
+    handlers: [console, file]
+    propagate: no
+    
+  micro_ros_agent:
+    level: DEBUG
+    handlers: [console, file, error_file]
+    propagate: no
+
+root:
+  level: INFO
+  handlers: [console, file]
