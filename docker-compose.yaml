@@ -128,3 +128,6 @@ services:
 
 volumes: {}
 
+# Protected files helper:
+# See config/protected-files.txt and run config/apply-protected-files.sh after cloning
+
