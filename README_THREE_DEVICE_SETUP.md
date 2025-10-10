@@ -5,60 +5,55 @@
 Sistem se sastoji od tri uređaja:
 
 1. **Raspberry Pi 4** - ROS2 stack u Docker containerima
-2. **Arduino R4 WiFi** - micro-ROS kontroler, motor kontrola
-3. **Arduino Nano ESP32** - enkoder procesor (dual AS5600)
+2. **Arduino R4 WiFi** - motor kontrola + LED matrica (prima CommandPacket)
+3. **Arduino Nano ESP32** - senzori (IMU + enkoderi + odometrija) + custom serial protokol
 
 ## Komunikacija
 
 ```
-ROS2 (Pi) ↔ USB Serial ↔ Arduino R4 WiFi ↔ I2C ↔ Nano ESP32 (enkoderi)
+ROS2 (Pi containers) ↔ robot_bridge (USB /dev/ttyUSB1) ↔ Nano ESP32 ↔ UART ↔ UNO R4 (motori + LED)
+                   ↘ LIDAR (/dev/ttyUSB0) → laser_driver
 ```
 
 ### Topici za komunikaciju:
 
 - `/cmd_vel` - komande za kretanje (Twist)
-- `/odom` - odometrija iz enkodera (Odometry)  
-- `/imu/data` - IMU podaci s R4 WiFi (Imu)
+- `/wheel_odom` - odometrija (Odometry)
+- `/imu/data` - IMU + gyro podaci
+- `/robot_status` - health / statistika bridge-a
 
 ## Hardware Setup
 
 ### Arduino R4 WiFi povezivanje:
-- **USB** → Raspberry Pi (micro-ROS agent)
-- **SDA/SCL** → Arduino Nano ESP32 (I2C master)
+- **UART (RX/TX)** ↔ Nano ESP32 (CommandPacket 20B)
 - **PWM pinovi** → BTS7960 motor driveri
-- **LSM6DS IMU** - interni na R4 WiFi
+- **LED Matrix** → Status vizualizacija
 
 ### Arduino Nano ESP32 povezivanje:
-- **SDA/SCL** → Arduino R4 WiFi (I2C slave, address 0x42)
-- **SDA1/SCL1** → AS5600 encoder 1 (desni kotač)
-- **SDA2/SCL2** → AS5600 encoder 2 (lijevi kotač)
+- **USB** → Raspberry Pi (/dev/ttyUSB1) – SensorPacket 64B @20Hz
+- **UART (TX1/RX1)** → UNO R4 (motor komande)
+- **I2C → TCA9548A mux**:
+   - CH0 → IMU LSM6DSO32
+   - CH1 → AS5600 (lijevi)
+   - CH2 → AS5600 (desni)
 
 ## Deployment
 
 1. **Upload Arduino firmware:**
    
-   **Arduino R4 WiFi kod (odaberi jednu opciju):**
-   ```bash
-   # Osnovna verzija (bez LED display)
-   devastator_controler/devastator_r4_optimized.ino
-   
-   # Verzija s LED matrix vizualizacijom (preporučeno!)
-   devastator_controler/devastator_r4_with_display.ino
-   ```
-   
-   **Arduino Nano ESP32 kod:**
-   ```bash
-   # Upload devastator_encoders/src/main.cpp na Nano ESP32
-   ```
+   **Arduino R4 WiFi kod:** `devastator_controler_r4.ino`
 
-2. **Required libraries za R4 WiFi s LED display:**
+   **Arduino Nano ESP32 kod:** `devastator_sensors_nano.ino`
+
+2. **Required libraries:**
    ```bash
-   # Ako koristiš verziju s LED display, instaliraj:
-   # - ArduinoGraphics
-   # - Arduino_LED_Matrix
-   # - micro_ros_arduino
-   # - Adafruit_LSM6DS
-   # - ArduinoJson
+   # UNO R4:
+   - ArduinoGraphics
+   - Arduino_LED_Matrix
+
+   # Nano ESP32:
+   - Adafruit LSM6DSO32
+   - Wire (builtin)
    ```
 
 3. **Konfiguracija stack-a:**
@@ -74,7 +69,7 @@ ROS2 (Pi) ↔ USB Serial ↔ Arduino R4 WiFi ↔ I2C ↔ Nano ESP32 (enkoderi)
 
 ## LED Matrix Visualization (R4 WiFi)
 
-Ako koristiš `devastator_r4_with_display.ino`, Arduino R4 WiFi će prikazivati:
+`devastator_controler_r4.ino` prikazuje:
 
 | LED Pattern | Robot State |
 |-------------|-------------|
@@ -87,7 +82,7 @@ Ako koristiš `devastator_r4_with_display.ino`, Arduino R4 WiFi će prikazivati:
 
 **Real-time feedback**: LED matrix se ažurira na 5Hz i pokazuje trenutno stanje robota!
 
-## USB Device Detection
+## USB Device Detection (nova arhitektura)
 
 Provjeri koja USB devices su dostupni:
 
@@ -95,18 +90,18 @@ Provjeri koja USB devices su dostupni:
 # Provjeri dostupne USB devices
 ls -la /dev/tty*
 
-# Arduino R4 WiFi obično se pojavi kao:
-/dev/ttyACM0  # ili /dev/ttyACM1
+# LIDAR:
+/dev/ttyUSB0
 
-# LIDAR obično kao:
-/dev/ttyUSB0  # ili /dev/ttyUSB1
+# Nano ESP32 (bridge):
+/dev/ttyUSB1
 ```
 
 Ako su devices na različitim putovima, edituj `.env`:
 
 ```bash
-MICROROS_DEVICE=/dev/ttyACM1
-LIDAR_DEVICE=/dev/ttyUSB1
+LIDAR_DEVICE=/dev/ttyUSB0
+BRIDGE_SERIAL_DEVICE=/dev/ttyUSB1
 ```
 
 ## Monitoring
@@ -134,12 +129,11 @@ ros2 topic pub /cmd_vel geometry_msgs/Twist "linear: {x: 0.1}" --once
 
 ## Troubleshooting
 
-### Micro-ROS Agent ne može pristupiti USB:
+### Bridge ne vidi serijski uređaj:
 ```bash
-# Provjeri permissions
-ls -la /dev/ttyACM0
+ls -la /dev/ttyUSB1
 sudo usermod -a -G dialout $USER
-# Restartuj session ili reboot
+docker compose restart robot_bridge
 ```
 
 ### I2C komunikacija ne radi:
@@ -158,11 +152,11 @@ docker compose build sensor_fusion_cont
 
 ## Performance Tuning
 
-### Memory optimization (R4 WiFi):
-- Micro-ROS agent baud rate: 115200 (balanced speed/reliability)
-- I2C clock: 400kHz (fast mode)
-- Encoder reading: 50Hz
-- Odometry calculation: 20Hz
+### Senzor & komunikacija frekvencije:
+- Serial bridge baud: 115200
+- I2C clock: 400kHz
+- Sensor publish: 20Hz (IMU + odometrija)
+- Odometrija račun: Nano ESP32
 
 ### Network optimization:
 - ROS_DOMAIN_ID=0 (sve komponente)
@@ -171,7 +165,7 @@ docker compose build sensor_fusion_cont
 - Custom CycloneDDS XML config for local optimization
 
 ### Container resource limits:
-- micro_ros_agent: 256MB RAM, 0.5 CPU cores
+- robot_bridge: 256MB RAM limit, 64MB reserved
 - Automatic memory management with health checks
 - Log rotation (10MB max per file, 5 backups)
 
@@ -197,7 +191,7 @@ tail -f /srv/logs/system_metrics.log
 ```
 
 ### Key metrics to monitor:
-- **Topic frequencies**: /cmd_vel, /odom, /scan, /imu/data
+- **Topic frequencies**: /cmd_vel, /wheel_odom, /scan, /imu/data
 - **Container health**: all containers should be "healthy"
 - **Resource usage**: memory <80%, CPU <70% average
 - **USB devices**: Arduino on /dev/ttyACM0, LIDAR on /dev/ttyUSB0

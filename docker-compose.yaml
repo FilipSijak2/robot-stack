@@ -6,6 +6,7 @@ services:
     network_mode: host  # ROS 2 koristi DDS, koji zahtijeva host mrežu
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
     volumes:
       - ./config/nav2_params.yaml:/app/nav2_params.yaml
       - ./srv:/srv  # Map storage
@@ -14,6 +15,7 @@ services:
       - slam_cont
       - rosbridge_websocket
       - sensor_fusion_cont
+      - robot_bridge
     restart: always
 
   database_cont:
@@ -93,33 +95,35 @@ services:
     depends_on:
       - database_cont
       - slam_cont
-      - micro_ros_agent
+      - robot_bridge
 
-  micro_ros_agent:
-    image: microros/micro-ros-agent:humble
-    container_name: micro_ros_agent
-    network_mode: host
-    devices:
-      - "${MICROROS_DEVICE:-/dev/ttyACM0}:${MICROROS_DEVICE:-/dev/ttyACM0}"  # Arduino R4 WiFi USB connection
-    command: serial --dev ${MICROROS_DEVICE:-/dev/ttyACM0} -b 115200
+  robot_bridge:
+    build: ../bridge_cont
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/bridge:${BRIDGE_TAG}
+    container_name: robot_bridge_cont
+    network_mode: host  # DDS discovery + low latency
     environment:
+      - SERIAL_PORT=${BRIDGE_SERIAL_DEVICE:-/dev/ttyUSB1}
+      - SERIAL_BAUD=${BRIDGE_SERIAL_BAUD:-115200}
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-      - ROS_DOMAIN_ID=0
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+    devices:
+      - "${BRIDGE_SERIAL_DEVICE:-/dev/ttyUSB1}:${BRIDGE_SERIAL_DEVICE:-/dev/ttyUSB1}"
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'pgrep -f robot_serial_bridge >/dev/null || exit 1'"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 8s
     deploy:
       resources:
         limits:
           memory: 256M
           cpus: '0.5'
         reservations:
-          memory: 128M
-          cpus: '0.25'
-    healthcheck:
-      test: ["CMD-SHELL", "pgrep -f micro_ros_agent >/dev/null || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 3
-      start_period: 5s
+          memory: 64M
+          cpus: '0.10'
 
 volumes: {}
 
