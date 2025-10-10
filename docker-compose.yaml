@@ -37,7 +37,7 @@ services:
       retries: 5
 
   laser_driver:
-    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/driver:${DRIVER_TAG}
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/laser_driver:${DRIVER_TAG}
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
       - ROS_DOMAIN_ID=0  # Mora biti isti kao u rosbridge_websocket
