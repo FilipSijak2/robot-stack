@@ -98,7 +98,6 @@ services:
       - robot_bridge
 
   robot_bridge:
-    build: ../bridge_cont
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/bridge:${BRIDGE_TAG}
     container_name: robot_bridge_cont
     network_mode: host  # DDS discovery + low latency
@@ -124,6 +123,8 @@ services:
         reservations:
           memory: 64M
           cpus: '0.10'
+    # NOTE: If you want to build locally instead of pulling from registry, uncomment below:
+    # build: ../bridge_cont
 
 volumes: {}
 
