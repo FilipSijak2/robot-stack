@@ -77,9 +77,7 @@ services:
     environment:
       - ROS_DOMAIN_ID=0  # Postavi isti ROS_DOMAIN_ID za sve containere
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-    ports:
-      - "9090:9090"  # Standardni port za rosbridge websocket
-    network_mode: host  # ROS 2 koristi DDS, koji zahtijeva host mrežu
+    network_mode: host  # ROS 2 koristi DDS, koji zahtijeva host mrežu (port 9090 dostupan preko host-a)
     restart: always
 
   sensor_fusion_cont:
@@ -102,12 +100,12 @@ services:
     container_name: robot_bridge_cont
     network_mode: host  # DDS discovery + low latency
     environment:
-      - SERIAL_PORT=${BRIDGE_SERIAL_DEVICE:-/dev/ttyUSB1}
+      - SERIAL_PORT=${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}
       - SERIAL_BAUD=${BRIDGE_SERIAL_BAUD:-115200}
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
     devices:
-      - "${BRIDGE_SERIAL_DEVICE:-/dev/ttyUSB1}:${BRIDGE_SERIAL_DEVICE:-/dev/ttyUSB1}"
+      - "${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}:${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}"
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'pgrep -f robot_serial_bridge >/dev/null || exit 1'"]
