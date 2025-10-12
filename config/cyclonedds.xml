@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<CycloneDX xmlns="https://dds.eclipse.org/cyclonedx/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://dds.eclipse.org/cyclonedx/ https://raw.githubusercontent.com/eclipse-cyclonedx/cyclonedx/master/etc/cyclonedds.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Correct root element should be CycloneDDS, previous CycloneDX was a typo -->
+<CycloneDDS xmlns="https://cdds.omg.org/schema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <Domain id="any">
         <General>
             <NetworkInterfaceAddress>auto</NetworkInterfaceAddress>
@@ -41,4 +42,4 @@
             <OutputFile>stdout</OutputFile>
         </Tracing>
     </Domain>
-</CycloneDX>
+</CycloneDDS>
