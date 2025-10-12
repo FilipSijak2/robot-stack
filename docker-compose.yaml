@@ -102,7 +102,7 @@ services:
     environment:
       - SERIAL_PORT=${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}
       - SERIAL_BAUD=${BRIDGE_SERIAL_BAUD:-115200}
-      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - RMW_IMPLEMENTATION=rmw_cyclonedx_cpp
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
     devices:
       - "${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}:${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}"
