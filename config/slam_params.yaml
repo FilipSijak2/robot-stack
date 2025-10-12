@@ -4,6 +4,13 @@ slam_toolbox:
     use_sim_time: false
     map_file_name: "my_map"
     resolution: 0.05
+    # Ensure the map is published so /map topic exists
+    publish_map: true
+    # Frame configuration (needed for proper transforms & map publication)
+    map_frame: map
+    odom_frame: odom
+    base_frame: base_link
+    scan_topic: /scan
     
     # Sensor parameters
     max_laser_range: 10.0

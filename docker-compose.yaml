@@ -64,6 +64,8 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pgrep -f slam_toolbox >/dev/null || exit 1" ]
