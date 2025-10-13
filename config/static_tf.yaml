@@ -1,4 +1,9 @@
 static_transforms:
+  # Identity odom -> base_link so SLAM can build map (replace later with real wheel odom TF)
+  - parent: odom
+    child: base_link
+    translation: [0.0, 0.0, 0.0]
+    rotation_rpy: [0.0, 0.0, 0.0]
   # Placeholder transform laser -> base_link (translation in meters, rotation RPY in radians)
   - parent: base_link
     child: laser
