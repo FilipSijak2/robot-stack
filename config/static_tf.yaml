@@ -1,0 +1,12 @@
+static_transforms:
+  # Placeholder transform laser -> base_link (translation in meters, rotation RPY in radians)
+  - parent: base_link
+    child: laser
+    translation: [0.0, 0.05, 0.10]   # x, y, z (placeholder: laser 5cm to the left, 10cm above base_link)
+    rotation_rpy: [0.0, 0.0, 0.0]    # roll, pitch, yaw
+
+  # Add more transforms as needed, e.g. imu, camera, etc.
+  # - parent: base_link
+  #   child: imu_link
+  #   translation: [0.0, 0.0, 0.0]
+  #   rotation_rpy: [0.0, 0.0, 0.0]

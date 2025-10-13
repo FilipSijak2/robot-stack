@@ -58,6 +58,7 @@ services:
     volumes:
       - ./config/slam_params.yaml:/app/slam_params.yaml  # Konfiguracija
       - ./srv:/srv  # Trajni podaci (maps & ostalo)
+      - ./config/static_tf.yaml:/app/static_tf.yaml  # Static TF definicije
     environment:
       - MAP_ROOT=${MAP_ROOT}
       - DB_HOST=localhost
@@ -66,6 +67,8 @@ services:
       - DB_PASS=${DB_PASS}
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - STATIC_TF_FILE=/app/static_tf.yaml
+      - PUBLISH_LASER_STATIC_TF=0  # YAML already defines needed TF; set 1 to add ad-hoc single TF
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pgrep -f slam_toolbox >/dev/null || exit 1" ]
