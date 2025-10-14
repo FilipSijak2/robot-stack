@@ -2,4 +2,4 @@
 # Lines starting with # are comments.
 # Example: .env
 .env
-static_tf.yaml
+config/static_tf.yaml
