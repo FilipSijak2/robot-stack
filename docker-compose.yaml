@@ -76,6 +76,21 @@ services:
       timeout: 5s
       retries: 5
 
+  webui:
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/webui:${WEBUI_TAG}
+    container_name: webui_cont
+    ports:
+      - "8080:80"
+    environment:
+      - VITE_ROSBRIDGE_URL=${VITE_ROSBRIDGE_URL:-ws://${PUBLIC_HOST:-localhost}:9090}
+      - VITE_ROBOT_NAME=${VITE_ROBOT_NAME:-Devastator}
+    depends_on:
+      - rosbridge_websocket
+    restart: always
+    profiles:
+      - ${ENABLE_WEBUI_PROFILE:-webui}
+    # No host network needed; browser reaches rosbridge on host:9090 via tailnet/local IP
+
   rosbridge_websocket:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/rosbridge:${ROSBRIDGE_TAG}
     container_name: rosbridge_websocket_cont
@@ -128,6 +143,34 @@ services:
           cpus: '0.10'
     # NOTE: If you want to build locally instead of pulling from registry, uncomment below:
     # build: ../bridge_cont
+
+  ai_kit_cont:
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/ai-kit:${AI_KIT_TAG}
+    container_name: ai_kit_cont
+    environment:
+      - DISPLAY=${DISPLAY}
+      - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
+      - UDEV=1
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+    devices:
+      - /dev/dri:/dev/dri
+      - /dev:/dev
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /dev:/dev
+      - /lib/firmware:/lib/firmware
+      - /run/udev:/run/udev:ro
+    privileged: true
+    network_mode: host
+    ipc: host
+    tty: true
+    stdin_open: true
+    group_add:
+      - 44
+    restart: unless-stopped
+    profiles:
+      - ${ENABLE_AI_KIT_PROFILE:-ai_kit}
 
 volumes: {}
 

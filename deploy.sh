@@ -25,7 +25,13 @@ echo "[INFO] Pulling images..."
 docker compose pull
 
 echo "[INFO] Recreating containers..."
-docker compose up -d
+if grep -q '^ENABLE_WEBUI=false' "$ENV_FILE"; then
+  echo "[INFO] ENABLE_WEBUI=false -> starting without webui (scale=0)"
+  docker compose up -d --scale webui=0
+else
+  echo "[INFO] ENABLE_WEBUI!=false -> starting all including webui"
+  docker compose up -d
+fi
 
 echo "[INFO] Basic health checks..."
 FAIL=0
@@ -49,7 +55,12 @@ check_container(){
   echo "FAIL"; return 1
 }
 
-for c in database_cont slam_cont nav_cont laser_driver_cont rosbridge_websocket_cont sensor_fusion_cont micro_ros_agent; do
+done
+SERVICES="database_cont slam_cont nav_cont laser_driver_cont rosbridge_websocket_cont sensor_fusion_cont micro_ros_agent"
+if ! grep -q '^ENABLE_WEBUI=false' "$ENV_FILE"; then
+  SERVICES="$SERVICES webui_cont"
+fi
+for c in $SERVICES; do
   if ! check_container "$c"; then FAIL=1; fi
 done
 
