@@ -155,6 +155,28 @@ services:
     network_mode: host
     restart: always
 
+  # Camera Driver
+  camera_cont:
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/camera:${CAMERA_TAG}
+    container_name: camera_cont
+    network_mode: host
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - CAMERA_WIDTH=${CAMERA_WIDTH}
+      - CAMERA_HEIGHT=${CAMERA_HEIGHT}
+      - CAMERA_FPS=${CAMERA_FPS}
+    volumes:
+      - ./config/camera_info.yaml:/app/camera_info.yaml:ro
+    devices:
+      - ${CAMERA_DEV_VIDEO0:-/dev/video0}:${CAMERA_DEV_VIDEO0:-/dev/video0}
+      - ${CAMERA_DEV_VCHIQ:-/dev/vchiq}:${CAMERA_DEV_VCHIQ:-/dev/vchiq}
+      - ${CAMERA_DEV_MEDIA0:-/dev/media0}:${CAMERA_DEV_MEDIA0:-/dev/media0}
+      - ${CAMERA_DEV_MEDIA1:-/dev/media1}:${CAMERA_DEV_MEDIA1:-/dev/media1}
+    restart: always
+    depends_on:
+      - rosbridge_websocket
+
 volumes: {}
 
 

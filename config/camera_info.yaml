@@ -1,0 +1,28 @@
+# Camera intrinsic calibration for Raspberry Pi Camera Module 3
+# Generated using: ros2 run camera_calibration cameracalibrator --ros-args -p camera:=/camera -p image:=image_raw
+# Replace placeholder values with real output.
+
+camera_name: rpi_cam
+image_width: 1280
+image_height: 720
+# Supported models: plumb_bob, rational_polynomial, equidistant (fisheye). For standard pinhole use plumb_bob.
+distortion_model: plumb_bob
+D: [0.0, 0.0, 0.0, 0.0, 0.0]           # k1, k2, t1, t2, k3 (plumb_bob)
+K: [600.0, 0.0, 640.0, 0.0, 600.0, 360.0, 0.0, 0.0, 1.0]   # fx, 0, cx, 0, fy, cy, 0, 0, 1
+R: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]           # rectification (identity for mono)
+P: [600.0, 0.0, 640.0, 0.0, 0.0, 600.0, 360.0, 0.0, 0.0, 0.0, 1.0, 0.0]  # projection matrix (fx, 0, cx, Tx, 0, fy, cy, Ty, 0, 0, 1, 0)
+
+# ROI (Region of Interest) - usually zeros (full image)
+roi:
+  x_offset: 0
+  y_offset: 0
+  height: 0
+  width: 0
+  do_rectify: false
+
+# Binning factors (1 = no binning)
+binning_x: 1
+binning_y: 1
+
+# Timestamp of calibration (optional metadata)
+# calibration_time: "2025-10-23T00:00:00Z"

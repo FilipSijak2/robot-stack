@@ -10,6 +10,18 @@ static_transforms:
     translation: [0.0, 0.05, 0.10]   # x, y, z (placeholder: laser 5cm to the left, 10cm above base_link)
     rotation_rpy: [0.0, 0.0, 0.0]    # roll, pitch, yaw
 
+  # Camera mount (adjust translation & rotation_rpy to real mount position)
+  - parent: base_link
+    child: rpi_cam_link
+    translation: [0.10, 0.00, 0.35]   # 10cm forward, 35cm up
+    rotation_rpy: [0.0, 0.0, 0.0]
+
+  # Optical frame (REP 103: Z forward, X right, Y down)
+  - parent: rpi_cam_link
+    child: rpi_cam_optical_frame
+    translation: [0.0, 0.0, 0.0]
+    rotation_rpy: [-1.5708, 0.0, -1.5708]
+
   # Add more transforms as needed, e.g. imu, camera, etc.
   # - parent: base_link
   #   child: imu_link
