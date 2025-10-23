@@ -1,15 +1,18 @@
 version: '3.9'
+
 services:
+
+  # Navigation Stack
   nav_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/nav:${NAV_TAG}
     container_name: nav_cont
-    network_mode: host  # ROS 2 koristi DDS, koji zahtijeva host mrežu
+    network_mode: host
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
     volumes:
       - ./config/nav2_params.yaml:/app/nav2_params.yaml
-      - ./srv:/srv  # Map storage
+      - ./srv:/srv
     depends_on:
       - database_cont
       - slam_cont
@@ -18,6 +21,7 @@ services:
       - robot_bridge
     restart: always
 
+  # Database
   database_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/db:${DB_TAG}
     container_name: database_cont
@@ -36,29 +40,31 @@ services:
       timeout: 3s
       retries: 5
 
+  # Laser Driver
   laser_driver:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/laser_driver:${DRIVER_TAG}
+    container_name: laser_driver_cont
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-      - ROS_DOMAIN_ID=0  # Mora biti isti kao u rosbridge_websocket
-    container_name: laser_driver_cont
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
     devices:
-      - "${LIDAR_DEVICE:-/dev/ttyUSB0}:${LIDAR_DEVICE:-/dev/ttyUSB0}"  # Mapiranje serijskog uređaja
-    network_mode: host  # ROS 2 koristi DDS, koji zahtijeva host mrežu
+      - "${LIDAR_DEVICE:-/dev/ttyUSB0}:${LIDAR_DEVICE:-/dev/ttyUSB0}"
+    network_mode: host
     depends_on:
       - database_cont
     restart: always
 
+  # SLAM
   slam_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/slam:${SLAM_TAG}
     container_name: slam_cont
-    network_mode: host  # ROS 2 zahtijeva host mrežu
+    network_mode: host
     depends_on:
       - database_cont
     volumes:
-      - ./config/slam_params.yaml:/app/slam_params.yaml  # Konfiguracija
-      - ./srv:/srv  # Trajni podaci (maps & ostalo)
-      - ./config/static_tf.yaml:/app/static_tf.yaml  # Static TF definicije
+      - ./config/slam_params.yaml:/app/slam_params.yaml
+      - ./srv:/srv
+      - ./config/static_tf.yaml:/app/static_tf.yaml
     environment:
       - MAP_ROOT=${MAP_ROOT}
       - DB_HOST=localhost
@@ -68,7 +74,7 @@ services:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
       - STATIC_TF_FILE=/app/static_tf.yaml
-      - PUBLISH_LASER_STATIC_TF=0  # YAML already defines needed TF; set 1 to add ad-hoc single TF
+      - PUBLISH_LASER_STATIC_TF=0
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pgrep -f slam_toolbox >/dev/null || exit 1" ]
@@ -76,28 +82,7 @@ services:
       timeout: 5s
       retries: 5
 
-  webui:
-    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/webui:${WEBUI_TAG}
-    container_name: webui_cont
-    ports:
-      - "8080:80"
-    environment:
-      - VITE_ROSBRIDGE_URL=${VITE_ROSBRIDGE_URL:-ws://${PUBLIC_HOST:-localhost}:9090}
-      - VITE_ROBOT_NAME=${VITE_ROBOT_NAME:-Devastator}
-    depends_on:
-      - rosbridge_websocket
-    restart: always
-    # No host network needed; browser reaches rosbridge on host:9090 via tailnet/local IP
-
-  rosbridge_websocket:
-    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/rosbridge:${ROSBRIDGE_TAG}
-    container_name: rosbridge_websocket_cont
-    environment:
-      - ROS_DOMAIN_ID=0  # Postavi isti ROS_DOMAIN_ID za sve containere
-      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-    network_mode: host  # ROS 2 koristi DDS, koji zahtijeva host mrežu (port 9090 dostupan preko host-a)
-    restart: always
-
+  # Sensor Fusion
   sensor_fusion_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/sensor_fusion:${SENSOR_FUSION_TAG}
     container_name: sensor_fusion_cont
@@ -113,10 +98,11 @@ services:
       - slam_cont
       - robot_bridge
 
+  # Robot Serial Bridge
   robot_bridge:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/bridge:${BRIDGE_TAG}
     container_name: robot_bridge_cont
-    network_mode: host  # DDS discovery + low latency
+    network_mode: host
     environment:
       - SERIAL_PORT=${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}
       - SERIAL_BAUD=${BRIDGE_SERIAL_BAUD:-115200}
@@ -131,17 +117,8 @@ services:
       timeout: 5s
       retries: 3
       start_period: 8s
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.5'
-        reservations:
-          memory: 64M
-          cpus: '0.10'
-    # NOTE: If you want to build locally instead of pulling from registry, uncomment below:
-    # build: ../bridge_cont
 
+  # AI Kit
   ai_kit_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/ai-kit:${AI_KIT_TAG}
     container_name: ai_kit_cont
@@ -168,8 +145,40 @@ services:
       - 44
     restart: unless-stopped
 
+  # ROS Bridge WebSocket
+  rosbridge_websocket:
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/rosbridge:${ROSBRIDGE_TAG}
+    container_name: rosbridge_websocket_cont
+    environment:
+      - ROS_DOMAIN_ID=0
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+    network_mode: host
+    restart: always
+
+  # WebUI (production)
+  webui:
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/webui:${WEBUI_TAG}
+    container_name: webui_cont
+    environment:
+      - VITE_ROSBRIDGE_URL=${VITE_ROSBRIDGE_URL:-ws://${PUBLIC_HOST:-localhost}/rosbridge}
+      - VITE_ROBOT_NAME=${VITE_ROBOT_NAME:-Devastator}
+    depends_on:
+      - rosbridge_websocket
+    restart: unless-stopped
+    network_mode: host  # nginx sluša port 80, Caddy ga proxya
+
+  # Caddy Reverse Proxy
+  caddy:
+    image: caddy:latest
+    container_name: caddy_cont
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - webui
+      - rosbridge_websocket
+
 volumes: {}
 
-# Protected files helper:
-# See config/protected-files.txt and run config/apply-protected-files.sh after cloning
 
