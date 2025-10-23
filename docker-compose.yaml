@@ -174,7 +174,7 @@ services:
     restart: unless-stopped
     network_mode: host
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./config/Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:
       - webui
       - rosbridge_websocket
