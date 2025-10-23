@@ -155,30 +155,6 @@ services:
     network_mode: host
     restart: always
 
-  # WebUI (production)
-  webui:
-    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/webui:${WEBUI_TAG}
-    container_name: webui_cont
-    environment:
-      - VITE_ROSBRIDGE_URL=${VITE_ROSBRIDGE_URL:-ws://${PUBLIC_HOST:-localhost}/rosbridge}
-      - VITE_ROBOT_NAME=${VITE_ROBOT_NAME:-Devastator}
-    depends_on:
-      - rosbridge_websocket
-    restart: unless-stopped
-    network_mode: host  # nginx sluša port 80, Caddy ga proxya
-
-  # Caddy Reverse Proxy
-  caddy:
-    image: caddy:latest
-    container_name: caddy_cont
-    restart: unless-stopped
-    network_mode: host
-    volumes:
-      - ./config/Caddyfile:/etc/caddy/Caddyfile:ro
-    depends_on:
-      - webui
-      - rosbridge_websocket
-
 volumes: {}
 
 
