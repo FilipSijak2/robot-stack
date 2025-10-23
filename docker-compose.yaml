@@ -87,8 +87,6 @@ services:
     depends_on:
       - rosbridge_websocket
     restart: always
-    profiles:
-      - ${ENABLE_WEBUI_PROFILE:-webui}
     # No host network needed; browser reaches rosbridge on host:9090 via tailnet/local IP
 
   rosbridge_websocket:
@@ -169,8 +167,6 @@ services:
     group_add:
       - 44
     restart: unless-stopped
-    profiles:
-      - ${ENABLE_AI_KIT_PROFILE:-ai_kit}
 
 volumes: {}
 
