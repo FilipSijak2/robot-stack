@@ -156,30 +156,30 @@ services:
     restart: always
 
 # Camera Driver (CSI, ROS2 raw publisher)
-camera_cont:
-  image: ${REGISTRY_HOST}/${IMAGE_OWNER}/camera:${CAMERA_TAG}
-  container_name: camera_cont
-  network_mode: host
-  environment:
-    - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
-    - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-    - CAMERA_WIDTH=${CAMERA_WIDTH}
-    - CAMERA_HEIGHT=${CAMERA_HEIGHT}
-    - CAMERA_FPS=${CAMERA_FPS}
-    - CAMERA_PIPELINE=csi  # CSI pipeline
-    - CAMERA_FORMAT=raw    # RAW feed za ROS2
-  devices:
-    - ${CAMERA_DEV_VIDEO0:-/dev/video0}:${CAMERA_DEV_VIDEO0:-/dev/video0}
-    - ${CAMERA_DEV_VCHIQ:-/dev/vchiq}:${CAMERA_DEV_VCHIQ:-/dev/vchiq}
-    - ${CAMERA_DEV_MEDIA0:-/dev/media0}:${CAMERA_DEV_MEDIA0:-/dev/media0}
-    - ${CAMERA_DEV_MEDIA1:-/dev/media1}:${CAMERA_DEV_MEDIA1:-/dev/media1}
-  volumes:
-    - ./config/camera_info.yaml:/app/camera_info.yaml:ro
-    - /opt/ros/humble:/opt/ros/humble:ro   # mount host ROS 2
-    - /tmp/.ros:/tmp/.ros                  # ROS2 cache folder
-  restart: always
-  depends_on:
-    - rosbridge_websocket
+  camera_cont:
+   image: ${REGISTRY_HOST}/${IMAGE_OWNER}/camera:${CAMERA_TAG}
+   container_name: camera_cont
+   network_mode: host
+   environment:
+     - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+     - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+     - CAMERA_WIDTH=${CAMERA_WIDTH}
+     - CAMERA_HEIGHT=${CAMERA_HEIGHT}
+     - CAMERA_FPS=${CAMERA_FPS}
+     - CAMERA_PIPELINE=csi  # CSI pipeline
+     - CAMERA_FORMAT=raw    # RAW feed za ROS2
+   devices:
+     - ${CAMERA_DEV_VIDEO0:-/dev/video0}:${CAMERA_DEV_VIDEO0:-/dev/video0}
+     - ${CAMERA_DEV_VCHIQ:-/dev/vchiq}:${CAMERA_DEV_VCHIQ:-/dev/vchiq}
+     - ${CAMERA_DEV_MEDIA0:-/dev/media0}:${CAMERA_DEV_MEDIA0:-/dev/media0}
+     - ${CAMERA_DEV_MEDIA1:-/dev/media1}:${CAMERA_DEV_MEDIA1:-/dev/media1}
+   volumes:
+     - ./config/camera_info.yaml:/app/camera_info.yaml:ro
+     - /opt/ros/humble:/opt/ros/humble:ro   # mount host ROS 2
+     - /tmp/.ros:/tmp/.ros                  # ROS2 cache folder
+   restart: always
+   depends_on:
+     - rosbridge_websocket
 
 volumes: {}
 
