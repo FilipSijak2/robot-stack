@@ -157,29 +157,24 @@ services:
 
 # Camera Driver (CSI, ROS2 raw publisher)
   camera_cont:
-   image: ${REGISTRY_HOST}/${IMAGE_OWNER}/camera:${CAMERA_TAG}
-   container_name: camera_cont
-   network_mode: host
-   environment:
-     - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
-     - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-     - CAMERA_WIDTH=${CAMERA_WIDTH}
-     - CAMERA_HEIGHT=${CAMERA_HEIGHT}
-     - CAMERA_FPS=${CAMERA_FPS}
-     - CAMERA_PIPELINE=csi  # CSI pipeline
-     - CAMERA_FORMAT=raw    # RAW feed za ROS2
-   devices:
-     - ${CAMERA_DEV_VIDEO0:-/dev/video0}:${CAMERA_DEV_VIDEO0:-/dev/video0}
-     - ${CAMERA_DEV_VCHIQ:-/dev/vchiq}:${CAMERA_DEV_VCHIQ:-/dev/vchiq}
-     - ${CAMERA_DEV_MEDIA0:-/dev/media0}:${CAMERA_DEV_MEDIA0:-/dev/media0}
-     - ${CAMERA_DEV_MEDIA1:-/dev/media1}:${CAMERA_DEV_MEDIA1:-/dev/media1}
-   volumes:
-     - ./config/camera_info.yaml:/app/camera_info.yaml:ro
-     - /opt/ros/humble:/opt/ros/humble:ro   # mount host ROS 2
-     - /tmp/.ros:/tmp/.ros                  # ROS2 cache folder
-   restart: always
-   depends_on:
-     - rosbridge_websocket
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/camera:${CAMERA_TAG}
+    container_name: camera_cont
+    network_mode: host
+    environment:
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - CAMERA_DEVICE=/dev/video0
+      - CAMERA_WIDTH=${CAMERA_WIDTH:-1280}
+      - CAMERA_HEIGHT=${CAMERA_HEIGHT:-720}
+      - CAMERA_FPS=${CAMERA_FPS:-30}
+      - CAMERA_INFO_YAML=/app/camera_info.yaml
+    devices:
+      - /dev/video0:/dev/video0
+    volumes:
+      - ./config/camera_info.yaml:/app/camera_info.yaml:ro
+    restart: always
+    depends_on:
+      - rosbridge_websocket
 
 volumes: {}
 
