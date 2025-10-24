@@ -176,6 +176,7 @@ services:
       - /dev/media1:/dev/media1
       - /dev/media2:/dev/media2
       - /dev/media3:/dev/media3
+      # - /dev/vchiq:/dev/vchiq     # (obično ne treba na Pi 5; odkomentiraj ako zatreba)
     volumes:
       - ./config/camera_info.yaml:/data/camera_info.yaml:ro
     depends_on:
