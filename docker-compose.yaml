@@ -166,13 +166,15 @@ services:
       - CAMERA_WIDTH=${CAMERA_WIDTH}
       - CAMERA_HEIGHT=${CAMERA_HEIGHT}
       - CAMERA_FPS=${CAMERA_FPS}
-    volumes:
-      - ./config/camera_info.yaml:/app/camera_info.yaml:ro
     devices:
       - ${CAMERA_DEV_VIDEO0:-/dev/video0}:${CAMERA_DEV_VIDEO0:-/dev/video0}
       - ${CAMERA_DEV_VCHIQ:-/dev/vchiq}:${CAMERA_DEV_VCHIQ:-/dev/vchiq}
       - ${CAMERA_DEV_MEDIA0:-/dev/media0}:${CAMERA_DEV_MEDIA0:-/dev/media0}
       - ${CAMERA_DEV_MEDIA1:-/dev/media1}:${CAMERA_DEV_MEDIA1:-/dev/media1}
+    volumes:
+      - ./config/camera_info.yaml:/app/camera_info.yaml:ro
+      - /opt/ros/humble:/opt/ros/humble:ro   # mount host ROS 2
+      - /tmp/.ros:/tmp/.ros                  # potrebna ROS 2 cache folder
     restart: always
     depends_on:
       - rosbridge_websocket
