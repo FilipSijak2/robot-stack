@@ -160,27 +160,14 @@ services:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/camera:${CAMERA_TAG}
     container_name: camera_cont
     network_mode: host
-    restart: always
-    privileged: true  # potrebno za pristup /dev/video i encoderu
+    privileged: true
     environment:
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-      - CAMERA_WIDTH=${CAMERA_WIDTH:-1280}
-      - CAMERA_HEIGHT=${CAMERA_HEIGHT:-720}
-      - CAMERA_FPS=${CAMERA_FPS:-30}
-      - CAMERA_INFO_PATH=/app/camera_info.yaml   # gdje node očekuje kalibraciju
-      - USE_H264=true       # primarni način
-      - USE_RAW=true        # omogućuje i /image_raw ako želiš drugi stream
     devices:
-      - /dev/video0:/dev/video0        # CSI kamera glavni video hlad
-      - /dev/media0:/dev/media0        # media controller za pipeline
-      - /dev/media1:/dev/media1
-      - /dev/media2:/dev/media2
-      - /dev/media3:/dev/media3
+      - /dev/video0:/dev/video0
     volumes:
-      - ./config/camera_info.yaml:/app/camera_info.yaml:ro
-      - /opt/ros/humble:/opt/ros/humble:ro   # koristi host ROS libs
-      - /tmp/.ros:/tmp/.ros                  # ROS cache
+      - ./config/camera_info.yaml:/camera_info.yaml:ro
+    restart: unless-stopped
 
 volumes: {}
 
