@@ -159,16 +159,16 @@ services:
   camera_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/camera:${CAMERA_TAG}
     container_name: camera_cont
-    privileged: true
     network_mode: host
+    privileged: true
+    # Privileged daje pristup svim /dev/*; na Pi 5 libcamera koristi /dev/video* i /dev/media* (RP1 pipeline)
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-    devices:
-      - /dev/video0:/dev/video0
-      - /dev/vchiq:/dev/vchiq
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
     volumes:
       - ./config/camera_info.yaml:/camera_info.yaml:ro
     restart: unless-stopped
+
 volumes: {}
 
 
