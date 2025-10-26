@@ -159,16 +159,16 @@ services:
   camera_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/camera:${CAMERA_TAG}
     container_name: camera_cont
-    network_mode: host
     privileged: true
+    network_mode: host
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
     devices:
       - /dev/video0:/dev/video0
+      - /dev/vchiq:/dev/vchiq
     volumes:
       - ./config/camera_info.yaml:/camera_info.yaml:ro
     restart: unless-stopped
-
 volumes: {}
 
 
