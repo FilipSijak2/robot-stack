@@ -162,13 +162,14 @@ services:
     privileged: true
     network_mode: host
     devices:
-      - /dev:/dev
-    volumes:
-      - ./config/camera_info.yaml:/camera_info.yaml:ro
-    restart: unless-stopped
+      - /dev/video0:/dev/video0
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - ROS_NAMESPACE=camera
+    volumes:
+      - ./config/camera_info.yaml:/camera_info.yaml:ro
+    restart: unless-stopped
 
 volumes: {}
 
