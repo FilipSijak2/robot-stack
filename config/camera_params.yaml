@@ -1,0 +1,7 @@
+camera_ros:
+  ros__parameters:
+    camera_type: libcamera
+    image_width: 1280
+    image_height: 720
+    framerate: 30
+    camera_info_url: file:///camera_info.yaml

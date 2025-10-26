@@ -169,6 +169,7 @@ services:
       - ROS_NAMESPACE=camera
     volumes:
       - ./config/camera_info.yaml:/camera_info.yaml:ro
+      - ./config/camera_params.yaml:/camera_params.yaml:ro
       - /usr/local/include/libcamera:/usr/local/include/libcamera:ro
       - /usr/local/lib/aarch64-linux-gnu:/usr/local/lib/aarch64-linux-gnu:ro
       - /usr/local/share/libcamera:/usr/local/share/libcamera:ro
