@@ -159,17 +159,22 @@ services:
   camera_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/camera:${CAMERA_TAG}
     container_name: camera_cont
-    privileged: true
     network_mode: host
+    privileged: true
     devices:
-      - /dev/video0:/dev/video0
+      - /dev:/dev
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
       - ROS_NAMESPACE=camera
     volumes:
       - ./config/camera_info.yaml:/camera_info.yaml:ro
+      - /usr/local/include/libcamera:/usr/local/include/libcamera:ro
+      - /usr/local/lib/aarch64-linux-gnu:/usr/local/lib/aarch64-linux-gnu:ro
+      - /usr/local/share/libcamera:/usr/local/share/libcamera:ro
+      - /usr/local/libexec/libcamera:/usr/local/libexec/libcamera:ro
     restart: unless-stopped
+
 
 volumes: {}
 
