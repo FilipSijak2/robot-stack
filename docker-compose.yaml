@@ -33,12 +33,12 @@ services:
       PGDATA: /srv/db
     volumes:
       - ./srv:/srv
-    restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
       interval: 5s
       timeout: 3s
       retries: 5
+    restart: always
 
   # Laser Driver
   laser_driver:
@@ -75,19 +75,18 @@ services:
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
       - STATIC_TF_FILE=/app/static_tf.yaml
       - PUBLISH_LASER_STATIC_TF=0
-    restart: always
     healthcheck:
       test: ["CMD-SHELL", "pgrep -f slam_toolbox >/dev/null || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 5
+    restart: always
 
   # Sensor Fusion
   sensor_fusion_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/sensor_fusion:${SENSOR_FUSION_TAG}
     container_name: sensor_fusion_cont
     network_mode: host
-    restart: always
     environment:
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
       - ROS_DOMAIN_ID=0
@@ -97,6 +96,7 @@ services:
       - database_cont
       - slam_cont
       - robot_bridge
+    restart: always
 
   # Robot Serial Bridge
   robot_bridge:
@@ -110,13 +110,13 @@ services:
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
     devices:
       - "${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}:${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}"
-    restart: always
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'pgrep -f robot_serial_bridge >/dev/null || exit 1'"]
       interval: 20s
       timeout: 5s
       retries: 3
       start_period: 8s
+    restart: always
 
   # AI Kit
   ai_kit_cont:
@@ -143,7 +143,7 @@ services:
     stdin_open: true
     group_add:
       - 44
-    restart: unless-stopped
+    restart: always
 
   # ROS Bridge WebSocket
   rosbridge_websocket:
@@ -168,8 +168,8 @@ services:
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
       - ROS_NAMESPACE=camera
     volumes:
-      - ./config/camera_info.yaml:/camera_info.yaml:ro  # optional
-    restart: unless-stopped
+      - ./config/camera_info.yaml:/app/camera_info.yaml:ro
+    restart: always
 
 
 volumes: {}
