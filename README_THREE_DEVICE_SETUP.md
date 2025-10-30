@@ -4,7 +4,8 @@
 
 Sistem se sastoji od tri uređaja:
 
-1. **Raspberry Pi 4** - ROS2 stack u Docker containerima
+1. **Raspberry Pi 5** - ROS2 stack u Docker containerima
+2. **Raspberry Pi zero 2w** - Camera device integrated with RPI Camera module 3
 2. **Arduino R4 WiFi** - motor kontrola + LED matrica (prima CommandPacket)
 3. **Arduino Nano ESP32** - senzori (IMU + enkoderi + odometrija) + custom serial protokol
 
