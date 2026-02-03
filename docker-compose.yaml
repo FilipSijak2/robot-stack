@@ -8,7 +8,7 @@ services:
     container_name: nav_cont
     network_mode: host
     environment:
-      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
     volumes:
       - ./config/nav2_params.yaml:/app/nav2_params.yaml
@@ -45,7 +45,7 @@ services:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/laser_driver:${DRIVER_TAG}
     container_name: laser_driver_cont
     environment:
-      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
     devices:
       - "${LIDAR_DEVICE:-/dev/ttyUSB0}:${LIDAR_DEVICE:-/dev/ttyUSB0}"
@@ -71,7 +71,7 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
-      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
       - STATIC_TF_FILE=/app/static_tf.yaml
       - PUBLISH_LASER_STATIC_TF=0
@@ -88,8 +88,8 @@ services:
     container_name: sensor_fusion_cont
     network_mode: host
     environment:
-      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-      - ROS_DOMAIN_ID=0
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
     volumes:
       - ./config/robot_localization.yaml:/app/robot_localization.yaml
     depends_on:
@@ -106,7 +106,7 @@ services:
     environment:
       - SERIAL_PORT=${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}
       - SERIAL_BAUD=${BRIDGE_SERIAL_BAUD:-115200}
-      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
     devices:
       - "${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}:${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}"
@@ -127,7 +127,7 @@ services:
       - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
       - UDEV=1
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
-      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
     devices:
       - /dev/dri:/dev/dri
       - /dev:/dev
@@ -150,9 +150,26 @@ services:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/rosbridge:${ROSBRIDGE_TAG}
     container_name: rosbridge_websocket_cont
     environment:
-      - ROS_DOMAIN_ID=0
-      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
     network_mode: host
+    restart: always
+
+  # Foxglove Bridge (WebSocket UI endpoint)
+  foxglove_bridge:
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/foxglove_bridge:${FOXGLOVE_BRIDGE_TAG}
+    container_name: foxglove_bridge_cont
+    network_mode: host
+    environment:
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - FOXGLOVE_PORT=${FOXGLOVE_PORT:-8765}
+      - FOXGLOVE_ADDRESS=${FOXGLOVE_ADDRESS:-0.0.0.0}
+      - FOXGLOVE_TLS=${FOXGLOVE_TLS:-0}
+      - FOXGLOVE_TLS_CERT=${FOXGLOVE_TLS_CERT:-/etc/ssl/certs/foxglove_bridge.crt}
+      - FOXGLOVE_TLS_KEY=${FOXGLOVE_TLS_KEY:-/etc/ssl/private/foxglove_bridge.key}
+    depends_on:
+      - rosbridge_websocket
     restart: always
 
 # Camera Driver (CSI, ROS2 raw publisher)
@@ -164,7 +181,7 @@ services:
     devices:
       - /dev:/dev
     environment:
-      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
       - ROS_NAMESPACE=camera
     volumes:
