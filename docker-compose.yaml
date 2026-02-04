@@ -188,6 +188,32 @@ services:
       - ./config/camera_info.yaml:/app/camera_info.yaml:ro
     restart: always
 
+  healthcheck_cont:
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/healthcheck:${HEALTHCHECK_TAG}
+    container_name: healthcheck_cont
+    network_mode: host
+    environment:
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - LOG_DIR=/logs
+      - LIDAR_DEVICE=${LIDAR_DEVICE:-/dev/ttyUSB0}
+      - BRIDGE_SERIAL_DEVICE=${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}
+      - CAMERA_DEVICE=${CAMERA_DEVICE:-/dev/video0}
+      - CYCLONEDDS_URI=file:///etc/ros/cyclonedds.xml
+    depends_on:
+      - nav_cont
+      - database_cont
+      - slam_cont
+      - sensor_fusion_cont
+      - robot_bridge
+    volumes:
+      - ./logs:/logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /dev:/dev:ro
+      - /run/udev:/run/udev:ro
+      - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
+    restart: always
+
 
 volumes: {}
 
