@@ -1,0 +1,7 @@
+# List ROS topics to record, one per line as a YAML array.
+# Example topics below; adjust to match your deployment.
+- /scan
+- /odom
+- /tf
+- /tf_static
+- /camera/image_raw

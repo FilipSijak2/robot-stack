@@ -188,6 +188,26 @@ services:
       - ./config/camera_info.yaml:/app/camera_info.yaml:ro
     restart: always
 
+  bag_recorder_cont:
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/bag_recorder:${BAG_RECORDER_TAG}
+    container_name: bag_recorder_cont
+    network_mode: host
+    environment:
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - CYCLONEDDS_URI=file:///etc/ros/cyclonedds.xml
+      - TOPICS_FILE=/config/recorded_topics.yaml
+      - BAG_OUTPUT_DIR=/bags
+      - MAX_BAG_MB=150
+    volumes:
+      - ./config/recorded_topics.yaml:/config/recorded_topics.yaml:ro
+      - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
+      - ./bags:/bags
+    depends_on:
+      - rosbridge_websocket
+      - foxglove_bridge
+    restart: always
+
   healthcheck_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/healthcheck:${HEALTHCHECK_TAG}
     container_name: healthcheck_cont
