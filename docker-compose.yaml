@@ -132,7 +132,7 @@ services:
 
   # AI Kit
   ai_kit_cont:
-    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/ai-kit:${AI_KIT_TAG}
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/ai_kit:${AI_KIT_TAG}
     container_name: ai_kit_cont
     environment:
       - DISPLAY=${DISPLAY}

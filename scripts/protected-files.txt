@@ -3,4 +3,4 @@
 # Example: .env
 .env
 config/static_tf.yaml
-config/apply-protected-files.sh
+scripts/apply-protected-files.sh
