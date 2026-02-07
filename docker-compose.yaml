@@ -21,8 +21,8 @@ services:
     volumes:
       - ./config/nav2_params.yaml:/app/nav2_params.yaml
       - ./srv:/srv
-    devices:
-      - "/dev/input/js0:/dev/input/js0"
+      - /dev/input:/dev/input:ro
+    privileged: true
     depends_on:
       - database_cont
       - slam_cont
