@@ -49,6 +49,8 @@ services:
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
     devices:
       - "${LIDAR_DEVICE:-/dev/ttyUSB0}:${LIDAR_DEVICE:-/dev/ttyUSB0}"
+    group_add:
+      - dialout
     network_mode: host
     depends_on:
       - database_cont
