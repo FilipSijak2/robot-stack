@@ -64,9 +64,20 @@ if [ ${#UNPROTECTED[@]} -eq 0 ]; then
   exit 0
 fi
 
+# Preserve local permissions (if file exists locally) before checkout
+declare -A PERMS
+for f in "${UNPROTECTED[@]}"; do
+  if [ -f "$REPO_ROOT/$f" ]; then
+    PERMS["$f"]=$(stat -c '%a' "$REPO_ROOT/$f" 2>/dev/null || echo "")
+  fi
+done
+
 # Update only unprotected files from remote branch
 while IFS= read -r f; do
   git checkout "$REMOTE/$BRANCH" -- "$f" >/dev/null 2>&1 || true
+  if [ -n "${PERMS[$f]:-}" ]; then
+    chmod "${PERMS[$f]}" "$REPO_ROOT/$f" 2>/dev/null || true
+  fi
   echo "[UPDATED] $f"
 done < <(printf "%s\n" "${UNPROTECTED[@]}")
 
