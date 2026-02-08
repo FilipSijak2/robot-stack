@@ -6,6 +6,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ENV_FILE="$REPO_ROOT/.env"
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 
 if [ ! -f "$ENV_FILE" ]; then
   echo "Missing .env at $ENV_FILE" >&2
@@ -137,14 +141,14 @@ for key in "${!REPO_MAP[@]}"; do
   repo="${REPO_MAP[$key]}"
   latest=$(pick_latest_tag "$repo")
   if [ -z "$latest" ]; then
-    echo "[SKIP] ${repo}: no tags found"
+    echo -e "${RED}[SKIP]${NC} ${repo}: no tags found"
     continue
   fi
   current=$(get_env "$key")
   if [ "$current" = "$latest" ]; then
-    echo "[OK] ${repo}: already ${latest}"
+    echo -e "${YELLOW}[OK]${NC} ${repo}: already ${latest}"
   else
-    echo "[UPDATE] ${repo}: ${current:-<empty>} -> ${latest}"
+    echo -e "${GREEN}[UPDATE]${NC} ${repo}: ${current:-<empty>} -> ${latest}"
     update_env_value "$key" "$latest"
   fi
 done
