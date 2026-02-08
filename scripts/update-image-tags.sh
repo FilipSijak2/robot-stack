@@ -30,6 +30,8 @@ get_env() {
 
 REGISTRY_HOST=$(get_env REGISTRY_HOST)
 IMAGE_OWNER=$(get_env IMAGE_OWNER)
+REGISTRY_USER=$(get_env REGISTRY_USER)
+REGISTRY_PASS=$(get_env REGISTRY_PASS)
 
 if [ -z "$REGISTRY_HOST" ] || [ -z "$IMAGE_OWNER" ]; then
   echo "REGISTRY_HOST or IMAGE_OWNER missing in .env" >&2
@@ -44,7 +46,7 @@ declare -A REPO_MAP=(
   [DB_TAG]="db"
   [SENSOR_FUSION_TAG]="sensor_fusion"
   [BRIDGE_TAG]="bridge"
-  [AI_KIT_TAG]="ai-kit"
+  [AI_KIT_TAG]="ai_kit"
   [CAMERA_TAG]="camera"
   [REALSENSE_TAG]="realsense"
   [BAG_RECORDER_TAG]="bag_recorder"
@@ -54,15 +56,19 @@ declare -A REPO_MAP=(
 
 fetch_tags() {
   local repo="$1"
-  local base="${REGISTRY_HOST}/${IMAGE_OWNER}/${repo}"
-  local url_http="http://${base}/tags/list"
-  local url_https="https://${base}/tags/list"
+  local base="${REGISTRY_HOST}/v2/${IMAGE_OWNER}/${repo}/tags/list"
+  local url_http="http://${base}"
+  local url_https="https://${base}"
+  local auth=()
+  if [ -n "${REGISTRY_USER}" ] && [ -n "${REGISTRY_PASS}" ]; then
+    auth=( -u "${REGISTRY_USER}:${REGISTRY_PASS}" )
+  fi
 
-  if curl -fsS "$url_http" -o /tmp/tags.json 2>/dev/null; then
+  if curl -fsS "${auth[@]}" "$url_http" -o /tmp/tags.json 2>/dev/null; then
     jq -r '.tags[]?' /tmp/tags.json
     return 0
   fi
-  if curl -fsS "$url_https" -o /tmp/tags.json 2>/dev/null; then
+  if curl -fsS "${auth[@]}" "$url_https" -o /tmp/tags.json 2>/dev/null; then
     jq -r '.tags[]?' /tmp/tags.json
     return 0
   fi
