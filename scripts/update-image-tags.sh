@@ -29,6 +29,7 @@ get_env() {
 }
 
 REGISTRY_HOST=$(get_env REGISTRY_HOST)
+REGISTRY_SCHEME=$(get_env REGISTRY_SCHEME)
 IMAGE_OWNER=$(get_env IMAGE_OWNER)
 REGISTRY_USER=$(get_env REGISTRY_USER)
 REGISTRY_PASS=$(get_env REGISTRY_PASS)
@@ -37,6 +38,10 @@ if [ -z "$REGISTRY_HOST" ] || [ -z "$IMAGE_OWNER" ]; then
   echo "REGISTRY_HOST or IMAGE_OWNER missing in .env" >&2
   exit 1
 fi
+
+REGISTRY_SCHEME=${REGISTRY_SCHEME:-http}
+REGISTRY_HOST=${REGISTRY_HOST#http://}
+REGISTRY_HOST=${REGISTRY_HOST#https://}
 
 # Map env keys to repository names
 declare -A REPO_MAP=(
@@ -57,20 +62,31 @@ declare -A REPO_MAP=(
 fetch_tags() {
   local repo="$1"
   local base="${REGISTRY_HOST}/v2/${IMAGE_OWNER}/${repo}/tags/list"
-  local url_http="http://${base}"
-  local url_https="https://${base}"
+  local url_primary="${REGISTRY_SCHEME}://${base}"
+  local url_fallback="${REGISTRY_SCHEME/http/https}://${base}"
   local auth=()
   if [ -n "${REGISTRY_USER}" ] && [ -n "${REGISTRY_PASS}" ]; then
     auth=( -u "${REGISTRY_USER}:${REGISTRY_PASS}" )
   fi
 
-  if curl -fsS "${auth[@]}" "$url_http" -o /tmp/tags.json 2>/dev/null; then
+  local status
+  status=$(curl -sS -o /tmp/tags.json -w '%{http_code}' "${auth[@]}" "$url_primary" || echo 000)
+  if [ "$status" = "200" ]; then
     jq -r '.tags[]?' /tmp/tags.json
     return 0
   fi
-  if curl -fsS "${auth[@]}" "$url_https" -o /tmp/tags.json 2>/dev/null; then
-    jq -r '.tags[]?' /tmp/tags.json
-    return 0
+
+  if [ "$url_fallback" != "$url_primary" ]; then
+    status=$(curl -sS -o /tmp/tags.json -w '%{http_code}' "${auth[@]}" "$url_fallback" || echo 000)
+    if [ "$status" = "200" ]; then
+      jq -r '.tags[]?' /tmp/tags.json
+      return 0
+    fi
+  fi
+
+  echo "[WARN] ${repo}: registry response ${status} for ${url_primary}" >&2
+  if [ -s /tmp/tags.json ]; then
+    echo "[WARN] ${repo}: response body: $(tr -d '\n' </tmp/tags.json | head -c 200)" >&2
   fi
   return 1
 }
