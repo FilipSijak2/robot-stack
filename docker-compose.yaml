@@ -212,7 +212,7 @@ services:
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
       - RS_CAMERA_NAME=realsense
-      - RS_SERIAL=${REALSENSE_SERIAL:-}
+      - RS_USB_PORT_ID=${REALSENSE_USB_PORT_ID:-}
       - RS_ENABLE_DEPTH=true
       - RS_ENABLE_COLOR=true
       - RS_ENABLE_INFRA1=false
