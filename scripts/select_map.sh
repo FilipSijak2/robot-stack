@@ -5,11 +5,13 @@ set -euo pipefail
 #   scripts/select_map.sh session_20251013-175951            # uses final/map.yaml if present
 #   scripts/select_map.sh /srv/maps/session_*/final/map.yaml # direct path
 # Environment:
-#   MAP_ROOT (default /srv/maps)
+#   MAP_ROOT (container path, default /srv/maps)
+#   MAP_ROOT_HOST (host path, default <repo>/srv/maps)
 #   RESTART_NAV=1 (auto restart nav_cont via docker compose or container name)
 #   NAV_SERVICE=nav_cont (container/service name)
 
-ENV_FILE="$(cd "$(dirname "$0")"/.. && pwd)/.env"
+REPO_ROOT="$(cd "$(dirname "$0")"/.. && pwd)"
+ENV_FILE="$REPO_ROOT/.env"
 if [ -f "$ENV_FILE" ]; then
   set -a
   # shellcheck disable=SC1090
@@ -18,17 +20,22 @@ if [ -f "$ENV_FILE" ]; then
 fi
 
 : "${MAP_ROOT:=/srv/maps}"
+: "${MAP_ROOT_HOST:=$REPO_ROOT/srv/maps}"
 : "${RESTART_NAV:=1}"
 : "${NAV_SERVICE:=nav_cont}"
+MAP_ROOT_FS="$MAP_ROOT"
+if [ -n "$MAP_ROOT_HOST" ] && [ -d "$MAP_ROOT_HOST" ]; then
+  MAP_ROOT_FS="$MAP_ROOT_HOST"
+fi
 TARGET_INPUT=${1:-}
 if [ -z "$TARGET_INPUT" ]; then
-  if [ ! -d "$MAP_ROOT" ]; then
-    echo "[select_map] MAP_ROOT not found: $MAP_ROOT" >&2
+  if [ ! -d "$MAP_ROOT_FS" ]; then
+    echo "[select_map] MAP_ROOT not found: $MAP_ROOT_FS" >&2
     echo "Usage: $0 <session_id | map_yaml_path>" >&2
     exit 2
   fi
 
-  mapfile -t MAPS < <(find "$MAP_ROOT" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
+  mapfile -t MAPS < <(find "$MAP_ROOT_FS" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
   if [ ${#MAPS[@]} -eq 0 ]; then
     echo "[select_map] No maps found in $MAP_ROOT" >&2
     exit 2
@@ -57,7 +64,7 @@ resolve_yaml(){
   local inp="$1"
   if [ -f "$inp" ]; then echo "$inp"; return 0; fi
   # treat as session id
-  local base="${MAP_ROOT}/${inp}"
+  local base="${MAP_ROOT_FS}/${inp}"
   if [ -f "${base}/final/map.yaml" ]; then echo "${base}/final/map.yaml"; return 0; fi
   if [ -f "${base}/map.yaml" ]; then echo "${base}/map.yaml"; return 0; fi
   return 1
@@ -68,8 +75,8 @@ SESSION_DIR=$(dirname $(dirname "$YAML_FILE"))
 SESSION_NAME=$(basename "$SESSION_DIR")
 
 # Update active symlink
-mkdir -p "$MAP_ROOT"
-ln -sfn "$SESSION_NAME" "$MAP_ROOT/active"
+mkdir -p "$MAP_ROOT_FS"
+ln -sfn "$SESSION_NAME" "$MAP_ROOT_FS/active"
 
 echo "[select_map] Active map now -> $YAML_FILE (session $SESSION_NAME)"
 
