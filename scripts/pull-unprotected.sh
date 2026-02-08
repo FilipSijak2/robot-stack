@@ -40,8 +40,8 @@ if ! git fetch "$REMOTE" "$BRANCH"; then
   exit 2
 fi
 
-# Build list of tracked files that are NOT protected
-mapfile -t TRACKED < <(git ls-files)
+# Build list of files from remote branch (so new files are included)
+mapfile -t TRACKED < <(git ls-tree -r --name-only "$REMOTE/$BRANCH")
 UNPROTECTED=()
 for f in "${TRACKED[@]}"; do
   skip=false
