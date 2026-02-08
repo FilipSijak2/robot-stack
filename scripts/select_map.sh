@@ -9,6 +9,14 @@ set -euo pipefail
 #   RESTART_NAV=1 (auto restart nav_cont via docker compose or container name)
 #   NAV_SERVICE=nav_cont (container/service name)
 
+ENV_FILE="$(cd "$(dirname "$0")"/.. && pwd)/.env"
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  # shellcheck disable=SC1090
+  . "$ENV_FILE"
+  set +a
+fi
+
 : "${MAP_ROOT:=/srv/maps}"
 : "${RESTART_NAV:=1}"
 : "${NAV_SERVICE:=nav_cont}"
