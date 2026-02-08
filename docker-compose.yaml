@@ -201,30 +201,30 @@ services:
   #   restart: always
 
   # RealSense D455
-realsense_cont:
-  image: ${REGISTRY_HOST}/${IMAGE_OWNER}/realsense:${REALSENSE_TAG}
-  container_name: realsense_cont
-  network_mode: host
-  privileged: true
-  volumes:
-    - /dev:/dev
-  environment:
-    - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-    - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-    - RS_CAMERA_NAME=realsense
-    - RS_SERIAL=${REALSENSE_SERIAL:-}
-    - RS_ENABLE_DEPTH=true
-    - RS_ENABLE_COLOR=true
-    - RS_ENABLE_INFRA1=false
-    - RS_ENABLE_INFRA2=false
-    - RS_ENABLE_GYRO=true
-    - RS_ENABLE_ACCEL=true
-    - RS_UNITE_IMU_METHOD=linear_interpolation
-    - RS_DEPTH_PROFILE=640x480x15
-    - RS_COLOR_PROFILE=640x480x15
-    - RS_ALIGN_DEPTH=true
-    - RS_ENABLE_POINTCLOUD=false
-  restart: always
+  realsense_cont:
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/realsense:${REALSENSE_TAG}
+    container_name: realsense_cont
+    network_mode: host
+    privileged: true
+    volumes:
+      - /dev:/dev
+    environment:
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - RS_CAMERA_NAME=realsense
+      - RS_SERIAL=${REALSENSE_SERIAL:-}
+      - RS_ENABLE_DEPTH=true
+      - RS_ENABLE_COLOR=true
+      - RS_ENABLE_INFRA1=false
+      - RS_ENABLE_INFRA2=false
+      - RS_ENABLE_GYRO=true
+      - RS_ENABLE_ACCEL=true
+      - RS_UNITE_IMU_METHOD=linear_interpolation
+      - RS_DEPTH_PROFILE=640x480x15
+      - RS_COLOR_PROFILE=640x480x15
+      - RS_ALIGN_DEPTH=true
+      - RS_ENABLE_POINTCLOUD=false
+    restart: always
 
 
   bag_recorder_cont:
