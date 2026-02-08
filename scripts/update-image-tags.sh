@@ -30,6 +30,7 @@ get_env() {
 
 REGISTRY_HOST=$(get_env REGISTRY_HOST)
 REGISTRY_SCHEME=$(get_env REGISTRY_SCHEME)
+REGISTRY_SCHEME_FALLBACK=$(get_env REGISTRY_SCHEME_FALLBACK)
 IMAGE_OWNER=$(get_env IMAGE_OWNER)
 REGISTRY_USER=$(get_env REGISTRY_USER)
 REGISTRY_PASS=$(get_env REGISTRY_PASS)
@@ -40,6 +41,7 @@ if [ -z "$REGISTRY_HOST" ] || [ -z "$IMAGE_OWNER" ]; then
 fi
 
 REGISTRY_SCHEME=${REGISTRY_SCHEME:-http}
+REGISTRY_SCHEME_FALLBACK=${REGISTRY_SCHEME_FALLBACK:-0}
 REGISTRY_HOST=${REGISTRY_HOST#http://}
 REGISTRY_HOST=${REGISTRY_HOST#https://}
 
@@ -63,20 +65,29 @@ fetch_tags() {
   local repo="$1"
   local base="${REGISTRY_HOST}/v2/${IMAGE_OWNER}/${repo}/tags/list"
   local url_primary="${REGISTRY_SCHEME}://${base}"
-  local url_fallback="${REGISTRY_SCHEME/http/https}://${base}"
+  local url_fallback=""
+  if [ "$REGISTRY_SCHEME_FALLBACK" = "1" ]; then
+    if [ "$REGISTRY_SCHEME" = "http" ]; then
+      url_fallback="https://${base}"
+    elif [ "$REGISTRY_SCHEME" = "https" ]; then
+      url_fallback="http://${base}"
+    fi
+  fi
   local auth=()
   if [ -n "${REGISTRY_USER}" ] && [ -n "${REGISTRY_PASS}" ]; then
     auth=( -u "${REGISTRY_USER}:${REGISTRY_PASS}" )
   fi
 
   local status
+  : > /tmp/tags.json
   status=$(curl -sS -o /tmp/tags.json -w '%{http_code}' "${auth[@]}" "$url_primary" || echo 000)
   if [ "$status" = "200" ]; then
     jq -r '.tags[]?' /tmp/tags.json
     return 0
   fi
 
-  if [ "$url_fallback" != "$url_primary" ]; then
+  if [ -n "$url_fallback" ]; then
+    : > /tmp/tags.json
     status=$(curl -sS -o /tmp/tags.json -w '%{http_code}' "${auth[@]}" "$url_fallback" || echo 000)
     if [ "$status" = "200" ]; then
       jq -r '.tags[]?' /tmp/tags.json
@@ -85,6 +96,9 @@ fetch_tags() {
   fi
 
   echo "[WARN] ${repo}: registry response ${status} for ${url_primary}" >&2
+  if [ "$status" = "401" ]; then
+    echo "[WARN] ${repo}: authentication required (set REGISTRY_USER/REGISTRY_PASS in .env)" >&2
+  fi
   if [ -s /tmp/tags.json ]; then
     echo "[WARN] ${repo}: response body: $(tr -d '\n' </tmp/tags.json | head -c 200)" >&2
   fi
