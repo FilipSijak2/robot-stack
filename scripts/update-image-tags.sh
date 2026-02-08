@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # Update *_TAG values in .env to the latest tags found in the registry.
-# Usage: bash scripts/update-image-tags.sh
+# Usage: bash scripts/update-image-tags.sh [--no-pull]
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -10,6 +10,35 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
+DO_PULL=1
+
+usage() {
+  cat <<'EOF'
+Usage: bash scripts/update-image-tags.sh [--no-pull]
+
+Options:
+  --no-pull   Update .env tags only, skip docker pull
+  -h, --help  Show this help
+EOF
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --no-pull)
+      DO_PULL=0
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
 
 if [ ! -f "$ENV_FILE" ]; then
   echo "Missing .env at $ENV_FILE" >&2
@@ -22,6 +51,10 @@ if ! command -v curl >/dev/null 2>&1; then
 fi
 if ! command -v jq >/dev/null 2>&1; then
   echo "jq is required" >&2
+  exit 1
+fi
+if [ "$DO_PULL" = "1" ] && ! command -v docker >/dev/null 2>&1; then
+  echo "docker is required for pulling images (use --no-pull to skip)" >&2
   exit 1
 fi
 
@@ -64,6 +97,7 @@ declare -A REPO_MAP=(
   [HEALTHCHECK_TAG]="healthcheck"
   [FOXGLOVE_BRIDGE_TAG]="foxglove_bridge"
 )
+declare -A LATEST_MAP=()
 
 fetch_tags() {
   local repo="$1"
@@ -144,6 +178,7 @@ for key in "${!REPO_MAP[@]}"; do
     echo -e "${RED}[SKIP]${NC} ${repo}: no tags found"
     continue
   fi
+  LATEST_MAP["$repo"]="$latest"
   current=$(get_env "$key")
   if [ "$current" = "$latest" ]; then
     echo -e "${YELLOW}[OK]${NC} ${repo}: already ${latest}"
@@ -152,3 +187,36 @@ for key in "${!REPO_MAP[@]}"; do
     update_env_value "$key" "$latest"
   fi
 done
+
+if [ "$DO_PULL" = "1" ]; then
+  pull_failed=0
+
+  if [ -n "${REGISTRY_USER}" ] && [ -n "${REGISTRY_PASS}" ]; then
+    echo -e "${YELLOW}[LOGIN]${NC} ${REGISTRY_HOST} as ${REGISTRY_USER}"
+    if echo "$REGISTRY_PASS" | docker login "$REGISTRY_HOST" -u "$REGISTRY_USER" --password-stdin >/dev/null 2>&1; then
+      echo -e "${GREEN}[OK]${NC} Docker login successful"
+    else
+      echo -e "${YELLOW}[WARN]${NC} Docker login failed; continuing with existing Docker credentials"
+    fi
+  fi
+
+  for key in "${!REPO_MAP[@]}"; do
+    repo="${REPO_MAP[$key]}"
+    tag="${LATEST_MAP[$repo]:-}"
+    if [ -z "$tag" ]; then
+      continue
+    fi
+    image_ref="${REGISTRY_HOST}/${IMAGE_OWNER}/${repo}:${tag}"
+    echo -e "${YELLOW}[PULL]${NC} ${image_ref}"
+    if docker pull "$image_ref"; then
+      echo -e "${GREEN}[PULLED]${NC} ${image_ref}"
+    else
+      echo -e "${RED}[FAIL]${NC} ${image_ref}" >&2
+      pull_failed=1
+    fi
+  done
+
+  if [ "$pull_failed" -ne 0 ]; then
+    exit 2
+  fi
+fi
