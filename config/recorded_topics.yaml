@@ -4,4 +4,10 @@
 - /odom
 - /tf
 - /tf_static
-- /camera/image_raw
+- /realsense/color/image_raw
+- /realsense/color/camera_info
+- /realsense/depth/image_rect_raw
+- /realsense/depth/camera_info
+- /realsense/aligned_depth_to_color/image_raw
+- /realsense/imu/gyro
+- /realsense/imu/accel
