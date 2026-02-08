@@ -7,6 +7,7 @@ set -euo pipefail
 # Environment:
 #   MAP_ROOT (container path, default /srv/maps)
 #   MAP_ROOT_HOST (host path, default <repo>/srv/maps)
+#   MAP_CONFIG_FILE (default <repo>/config/map.yaml)
 #   RESTART_NAV=1 (auto restart nav_cont via docker compose or container name)
 #   NAV_SERVICE=nav_cont (container/service name)
 
@@ -21,6 +22,7 @@ fi
 
 : "${MAP_ROOT:=/srv/maps}"
 : "${MAP_ROOT_HOST:=$REPO_ROOT/srv/maps}"
+: "${MAP_CONFIG_FILE:=$REPO_ROOT/config/map.yaml}"
 : "${RESTART_NAV:=1}"
 : "${NAV_SERVICE:=nav_cont}"
 MAP_ROOT_FS="$MAP_ROOT"
@@ -74,11 +76,28 @@ YAML_FILE=$(resolve_yaml "$TARGET_INPUT") || { echo "[select_map] Cannot resolve
 SESSION_DIR=$(dirname $(dirname "$YAML_FILE"))
 SESSION_NAME=$(basename "$SESSION_DIR")
 
-# Update active symlink
-mkdir -p "$MAP_ROOT_FS"
-ln -sfn "$SESSION_NAME" "$MAP_ROOT_FS/active"
+# Write selected map into config map.yaml (no symlink usage)
+MAP_DIR_HOST=$(dirname "$YAML_FILE")
+MAP_DIR_CONTAINER="$MAP_DIR_HOST"
+if [[ "$MAP_DIR_HOST" == "$MAP_ROOT_FS"* ]]; then
+  MAP_DIR_CONTAINER="$MAP_ROOT${MAP_DIR_HOST#$MAP_ROOT_FS}"
+fi
 
-echo "[select_map] Active map now -> $YAML_FILE (session $SESSION_NAME)"
+IMAGE_LINE=$(grep -E '^image:' "$YAML_FILE" | head -n1 | cut -d':' -f2- | xargs || true)
+if [ -z "$IMAGE_LINE" ]; then
+  echo "[select_map] Invalid map.yaml (missing image:)" >&2
+  exit 1
+fi
+
+if [[ "$IMAGE_LINE" != /* ]]; then
+  IMAGE_LINE="$MAP_DIR_CONTAINER/$IMAGE_LINE"
+fi
+
+mkdir -p "$(dirname "$MAP_CONFIG_FILE")"
+awk -v img="$IMAGE_LINE" 'BEGIN{done=0} /^image:/ {print "image: "img; done=1; next} {print} END{if (!done) print "image: "img}' "$YAML_FILE" > "$MAP_CONFIG_FILE"
+
+echo "[select_map] Selected map -> $YAML_FILE (session $SESSION_NAME)"
+echo "[select_map] Wrote config map -> $MAP_CONFIG_FILE"
 
 if [ "$RESTART_NAV" = "1" ]; then
   echo "[select_map] Restarting nav container ($NAV_SERVICE) to pick up map..."

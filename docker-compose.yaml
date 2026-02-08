@@ -16,11 +16,10 @@ services:
       - CMD_VEL_OUT=/cmd_vel
       - MANUAL_DEFAULT=false
       - MANUAL_TIMEOUT_S=0.5
-      - MAP_ROOT=${MAP_ROOT}
-      - MAP_SESSION=${MAP_SESSION}
-      - MAP_FILE=${MAP_FILE}
+      - MAP_FILE=${MAP_FILE:-/app/map.yaml}
     volumes:
       - ./config/nav2_params.yaml:/app/nav2_params.yaml
+      - ./config/map.yaml:/app/map.yaml:ro
       - ./srv:/srv
       - /dev/input:/dev/input:ro
     privileged: true
