@@ -14,7 +14,36 @@ set -euo pipefail
 : "${NAV_SERVICE:=nav_cont}"
 TARGET_INPUT=${1:-}
 if [ -z "$TARGET_INPUT" ]; then
-  echo "Usage: $0 <session_id | map_yaml_path>" >&2; exit 2; fi
+  if [ ! -d "$MAP_ROOT" ]; then
+    echo "[select_map] MAP_ROOT not found: $MAP_ROOT" >&2
+    echo "Usage: $0 <session_id | map_yaml_path>" >&2
+    exit 2
+  fi
+
+  mapfile -t MAPS < <(find "$MAP_ROOT" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
+  if [ ${#MAPS[@]} -eq 0 ]; then
+    echo "[select_map] No maps found in $MAP_ROOT" >&2
+    exit 2
+  fi
+
+  echo "Select map:" >&2
+  for i in "${!MAPS[@]}"; do
+    idx=$((i+1))
+    echo "  [$idx] ${MAPS[$i]}" >&2
+  done
+  echo -n "Enter number: " >&2
+  read -r choice
+  if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
+    echo "[select_map] Invalid selection" >&2
+    exit 2
+  fi
+  sel_index=$((choice-1))
+  if [ "$sel_index" -lt 0 ] || [ "$sel_index" -ge ${#MAPS[@]} ]; then
+    echo "[select_map] Selection out of range" >&2
+    exit 2
+  fi
+  TARGET_INPUT="${MAPS[$sel_index]}"
+fi
 
 resolve_yaml(){
   local inp="$1"
