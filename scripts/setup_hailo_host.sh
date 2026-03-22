@@ -27,6 +27,7 @@ set -euo pipefail
 # Versions tested on Ubuntu 24.04 arm64 with the AI Kit (Hailo-8L).
 # Source: https://ubuntu.com/blog/hackers-guide-to-the-raspberry-pi-ai-kit-on-ubuntu
 HAILORT_VERSION="4.17.0"
+HAILORT_DRIVERS_COMMIT="f840b6219230ec9a350444dbb903adbf0f63a373"
 TAPPAS_VERSION="3.28.2"
 RPI_ARCHIVE="http://archive.raspberrypi.com/debian/pool/main"
 
@@ -44,6 +45,7 @@ fi
 
 echo "=== Installing Hailo AI Kit runtime on Ubuntu host ==="
 echo "    HailoRT:     ${HAILORT_VERSION}"
+echo "    Driver rev:  ${HAILORT_DRIVERS_COMMIT}"
 echo "    TAPPAS Core: ${TAPPAS_VERSION}"
 echo
 
@@ -76,6 +78,7 @@ apt-get install -y --no-install-recommends \
   dkms \
   build-essential \
   git \
+  pciutils \
   wget
 
 # --- 2. Build and install the PCIe kernel driver from source ---
@@ -84,11 +87,19 @@ apt-get install -y --no-install-recommends \
 echo "[2/5] Building and installing Hailo PCIe driver..."
 DRIVER_DIR="/usr/src/hailo_pci-${HAILORT_VERSION}"
 if [ -d "${DRIVER_DIR}" ]; then
-  echo "  Driver source already present at ${DRIVER_DIR}, skipping clone."
-else
-  git -c advice.detachedHead=false clone --depth 1 --branch "v${HAILORT_VERSION}" \
-    https://github.com/hailo-ai/hailort-drivers.git \
-    "${DRIVER_DIR}"
+  CURRENT_REV="$(git -C "${DRIVER_DIR}" rev-parse HEAD 2>/dev/null || true)"
+  if [ "${CURRENT_REV}" = "${HAILORT_DRIVERS_COMMIT}" ]; then
+    echo "  Driver source already at the expected revision, reusing ${DRIVER_DIR}."
+  else
+    BACKUP_DIR="${DRIVER_DIR}.bak.$(date +%s)"
+    echo "  Moving existing driver source to ${BACKUP_DIR} to avoid stale builds."
+    mv "${DRIVER_DIR}" "${BACKUP_DIR}"
+  fi
+fi
+
+if [ ! -d "${DRIVER_DIR}" ]; then
+  git clone https://github.com/hailo-ai/hailort-drivers.git "${DRIVER_DIR}"
+  git -C "${DRIVER_DIR}" -c advice.detachedHead=false checkout "${HAILORT_DRIVERS_COMMIT}"
 fi
 
 # Download firmware (required at boot)
@@ -107,8 +118,22 @@ fi
 cd "${PCIE_DIR}"
 make all
 make install
-if ! modprobe hailo_pci 2>/dev/null; then
-  modprobe hailo1x_pci || true
+depmod -a
+printf '%s\n' hailo_pci > /etc/modules-load.d/hailo-pci.conf
+if ! modprobe hailo_pci; then
+  echo "ERROR: Failed to load hailo_pci after installation." >&2
+  echo "Kernel: $(uname -r)" >&2
+  echo "Installed Hailo modules under /lib/modules:" >&2
+  find "/lib/modules/$(uname -r)" -type f \( -name 'hailo*.ko' -o -name 'hailo*.ko.xz' -o -name 'hailo*.ko.zst' \) 2>/dev/null >&2 || true
+  echo "Check: dmesg | tail -n 100" >&2
+  exit 1
+fi
+if ! modinfo hailo_pci >/dev/null 2>&1; then
+  echo "ERROR: hailo_pci was not installed into the current kernel modules path." >&2
+  echo "Kernel: $(uname -r)" >&2
+  echo "Installed Hailo modules under /lib/modules:" >&2
+  find "/lib/modules/$(uname -r)" -type f \( -name 'hailo*.ko' -o -name 'hailo*.ko.xz' -o -name 'hailo*.ko.zst' \) 2>/dev/null >&2 || true
+  exit 1
 fi
 cp -f 51-hailo-udev.rules /etc/udev/rules.d/
 udevadm control --reload-rules
@@ -150,3 +175,11 @@ echo
 echo "After reboot, verify with:"
 echo "    ls /dev/hailo*              # expects /dev/hailo0"
 echo "    hailortcli fw-control identify"
+if [ ! -e /dev/hailo0 ]; then
+  echo
+  echo "WARNING: /dev/hailo0 is not present yet." >&2
+  echo "Run these checks after reboot if it is still missing:" >&2
+  echo "    sudo modprobe hailo_pci" >&2
+  echo "    sudo dmesg | grep -i hailo" >&2
+  echo "    lspci -nn | grep -Ei '1e60|hailo'" >&2
+fi
