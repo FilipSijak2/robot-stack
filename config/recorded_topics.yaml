@@ -7,5 +7,6 @@
 - /tf_static
 - /map
 - /camera/realsense/color/image_compressed
+- /camera/realsense/color/camera_info
 - /camera/realsense/imu/gyro
 - /camera/realsense/imu/accel
