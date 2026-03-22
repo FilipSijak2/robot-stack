@@ -64,3 +64,17 @@ loggers:
 root:
   level: INFO
   handlers: [console, file]
+
+# Daily Docker/container log collector configuration.
+# The collector writes each container's stdout/stderr stream into:
+#   /logs/<day>/<container_name>.log
+# Example day folder: 23-3-2026
+container_logging:
+  enabled: true
+  log_dir: /logs
+  state_file: /logs/.container-log-state.json
+  date_folder_format: "%-d-%-m-%Y"
+  scan_interval_seconds: 5
+  reconnect_delay_seconds: 3
+  include_containers: []
+  exclude_containers: []

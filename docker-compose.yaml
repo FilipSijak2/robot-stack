@@ -279,6 +279,21 @@ services:
     command: ["--root", "/srv", "--port", "80", "--address", "0.0.0.0", "--noauth"]
     restart: always
 
+  container_log_collector:
+    image: ${REGISTRY_HOST}/${IMAGE_OWNER}/healthcheck:${HEALTHCHECK_TAG}
+    container_name: container_log_collector_cont
+    environment:
+      - TZ=Europe/Zagreb
+      - LOG_DIR=/logs
+      - LOGGING_CONFIG=/config/logging.yaml
+      - COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME:-stack}
+    volumes:
+      - ./logs:/logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/logging.yaml:/config/logging.yaml:ro
+    entrypoint: ["/usr/local/bin/container_log_collector.py"]
+    restart: always
+
   healthcheck_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/healthcheck:${HEALTHCHECK_TAG}
     container_name: healthcheck_cont
@@ -291,6 +306,7 @@ services:
       - BRIDGE_SERIAL_DEVICE=${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}
       - CAMERA_DEVICE=${CAMERA_DEVICE:-/dev/video0}
       - CYCLONEDDS_URI=file:///etc/ros/cyclonedds.xml
+      - HEALTHCHECK_LOG_TO_FILE=0
     depends_on:
       - nav_cont
       - database_cont
