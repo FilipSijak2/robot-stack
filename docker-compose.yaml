@@ -256,6 +256,21 @@ services:
       - foxglove_bridge
     restart: always
 
+  # Bag file browser — browse and download bag files from a web browser.
+  # Access at: http://<pi-ip>:8080  (default login: admin / admin)
+  # Change the password after first login via Settings > User Management.
+  bag_browser:
+    image: filebrowser/filebrowser:latest
+    container_name: bag_browser_cont
+    ports:
+      - "8080:80"
+    volumes:
+      - ./bags:/srv:ro
+    environment:
+      - FB_NOAUTH=false
+    command: ["--root", "/srv", "--port", "80", "--address", "0.0.0.0"]
+    restart: always
+
   healthcheck_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/healthcheck:${HEALTHCHECK_TAG}
     container_name: healthcheck_cont
