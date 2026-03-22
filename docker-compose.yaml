@@ -8,6 +8,7 @@ services:
     environment:
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
       - ENABLE_CMD_VEL_MUX=1
       - ENABLE_JOYSTICK=1
       - JOYSTICK_DEV=/dev/input/js0
@@ -18,6 +19,7 @@ services:
       - MANUAL_TIMEOUT_S=0.5
       - MAP_FILE=${MAP_FILE:-/app/map.yaml}
     volumes:
+      - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - ./config/nav2_params.yaml:/app/nav2_params.yaml
       - ./config/map.yaml:/app/map.yaml:ro
       - ./srv:/srv
@@ -57,6 +59,9 @@ services:
     environment:
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+    volumes:
+      - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
     devices:
       - "${LIDAR_DEVICE:-/dev/ttyUSB0}:${LIDAR_DEVICE:-/dev/ttyUSB0}"
     group_add:
@@ -74,6 +79,7 @@ services:
     depends_on:
       - database_cont
     volumes:
+      - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - ./config/slam_params.yaml:/app/slam_params.yaml
       - ./srv:/srv
       - ./config/static_tf.yaml:/app/static_tf.yaml
@@ -85,6 +91,7 @@ services:
       - DB_PASS=${DB_PASS}
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
       - STATIC_TF_FILE=/app/static_tf.yaml
       - PUBLISH_LASER_STATIC_TF=0
     healthcheck:
@@ -102,7 +109,9 @@ services:
     environment:
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
     volumes:
+      - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - ./config/robot_localization.yaml:/app/robot_localization.yaml
     depends_on:
       - database_cont
@@ -120,6 +129,9 @@ services:
       - SERIAL_BAUD=${BRIDGE_SERIAL_BAUD:-115200}
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+    volumes:
+      - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
     devices:
       - "${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}:${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}"
     healthcheck:
@@ -140,6 +152,7 @@ services:
       - UDEV=1
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
       # Set to 0 to run in passthrough mode (republish images without AI inference).
       # Set to 1 and configure HAILO_GST_PIPELINE to enable Hailo inference.
       # Example pipeline for yolov8 detection on Hailo-8L:
@@ -153,6 +166,7 @@ services:
       - /dev/dri:/dev/dri
       - /dev:/dev
     volumes:
+      - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - /tmp/.X11-unix:/tmp/.X11-unix
       - /dev:/dev
       - /lib/firmware:/lib/firmware
@@ -181,6 +195,9 @@ services:
     environment:
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+    volumes:
+      - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
     network_mode: host
     restart: always
 
@@ -192,11 +209,14 @@ services:
     environment:
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
       - FOXGLOVE_PORT=${FOXGLOVE_PORT:-8765}
       - FOXGLOVE_ADDRESS=${FOXGLOVE_ADDRESS:-0.0.0.0}
       - FOXGLOVE_TLS=${FOXGLOVE_TLS:-0}
       - FOXGLOVE_TLS_CERT=${FOXGLOVE_TLS_CERT:-/etc/ssl/certs/foxglove_bridge.crt}
       - FOXGLOVE_TLS_KEY=${FOXGLOVE_TLS_KEY:-/etc/ssl/private/foxglove_bridge.key}
+    volumes:
+      - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
     depends_on:
       - rosbridge_websocket
     restart: always
@@ -224,10 +244,12 @@ services:
     network_mode: host
     privileged: true
     volumes:
+      - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - /dev:/dev
     environment:
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
       - RS_CAMERA_NAME=realsense
       - RS_USB_PORT_ID=${REALSENSE_USB_PORT_ID:-}
       - RS_SERIAL=${REALSENSE_SERIAL:-}
@@ -252,7 +274,7 @@ services:
     environment:
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-      - CYCLONEDDS_URI=file:///etc/ros/cyclonedds.xml
+      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
       - TOPICS_FILE=/config/recorded_topics.yaml
       - BAG_OUTPUT_DIR=/bags
       - MAX_BAG_MB=150
@@ -301,11 +323,11 @@ services:
     environment:
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
       - LOG_DIR=/logs
       - LIDAR_DEVICE=${LIDAR_DEVICE:-/dev/ttyUSB0}
       - BRIDGE_SERIAL_DEVICE=${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}
       - CAMERA_DEVICE=${CAMERA_DEVICE:-/dev/video0}
-      - CYCLONEDDS_URI=file:///etc/ros/cyclonedds.xml
       - HEALTHCHECK_LOG_TO_FILE=0
     depends_on:
       - nav_cont

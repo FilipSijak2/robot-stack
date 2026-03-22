@@ -2,7 +2,7 @@
 # RealSense topics use the /camera/realsense/ prefix (RS_CAMERA_NAME=realsense
 # inside a namespace=camera container).
 - /scan
-- /odom
+- /wheel_odom
 - /tf
 - /tf_static
 - /camera/realsense/color/image_raw

@@ -20,7 +20,6 @@
         </Internal>
         
         <Discovery>
-            <Tag>${HOSTNAME}</Tag>
             <ParticipantIndex>auto</ParticipantIndex>
             <MaxAutoParticipantIndex>30</MaxAutoParticipantIndex>
             <SPDPMulticastAddress>239.255.0.1</SPDPMulticastAddress>
