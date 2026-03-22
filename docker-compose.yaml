@@ -1,4 +1,4 @@
-services:
+﻿services:
 
   # Navigation Stack
   nav_cont:
@@ -172,13 +172,14 @@ services:
       - /lib/firmware:/lib/firmware
       - /run/udev:/run/udev:ro
       # Hailo runtime from host (installed via 'sudo apt install hailo-all').
-      # Mounts the prebuilt libs directly — no downloading inside the container.
+      # Mounts the prebuilt libs directly â€” no downloading inside the container.
       - /usr/lib/libhailort.so:/usr/lib/libhailort.so:ro
       - /usr/lib/hailo:/usr/lib/hailo:ro
       - /usr/lib/aarch64-linux-gnu/libhailort.so.4:/usr/lib/aarch64-linux-gnu/libhailort.so.4:ro
       - /usr/lib/aarch64-linux-gnu/gstreamer-1.0/libgsthailo.so:/usr/lib/aarch64-linux-gnu/gstreamer-1.0/libgsthailo.so:ro
       - /usr/lib/python3/dist-packages/hailort:/usr/lib/python3/dist-packages/hailort:ro
       - /usr/lib/python3/dist-packages/hailo_tappas_core_python_binding:/usr/lib/python3/dist-packages/hailo_tappas_core_python_binding:ro
+      - hailo_examples_data:/root/hailo-rpi5-examples
     privileged: true
     network_mode: host
     ipc: host
@@ -259,11 +260,12 @@ services:
       - RS_ENABLE_INFRA2=false
       - RS_ENABLE_GYRO=true
       - RS_ENABLE_ACCEL=true
-      - RS_UNITE_IMU_METHOD=linear_interpolation
+      - RS_UNITE_IMU_METHOD=${RS_UNITE_IMU_METHOD:-linear_interpolation}
       - RS_DEPTH_PROFILE=640x480x15
       - RS_COLOR_PROFILE=640x480x15
       - RS_ALIGN_DEPTH=true
       - RS_ENABLE_POINTCLOUD=false
+      - RS_COMPRESSED_JPEG_QUALITY=${RS_COMPRESSED_JPEG_QUALITY:-40}
     restart: always
 
 
@@ -287,7 +289,7 @@ services:
       - foxglove_bridge
     restart: always
 
-  # File browser — browse bags and logs from a web browser.
+  # File browser â€” browse bags and logs from a web browser.
   # Access at: http://<pi-ip>:8080  (no login required)
   # Shows two folders: bags/ and logs/
   bag_browser:
@@ -344,6 +346,10 @@ services:
     restart: always
 
 
-volumes: {}
+volumes:
+  hailo_examples_data: {}
+
+
+
 
 
