@@ -1,13 +1,15 @@
 # List ROS topics to record, one per line as a YAML array.
-# Example topics below; adjust to match your deployment.
+# RealSense topics use the /camera/realsense/ prefix (RS_CAMERA_NAME=realsense
+# inside a namespace=camera container).
 - /scan
 - /odom
 - /tf
 - /tf_static
-- /realsense/color/image_raw
-- /realsense/color/camera_info
-- /realsense/depth/image_rect_raw
-- /realsense/depth/camera_info
-- /realsense/aligned_depth_to_color/image_raw
-- /realsense/imu/gyro
-- /realsense/imu/accel
+- /camera/realsense/color/image_raw
+- /camera/realsense/color/image_compressed
+- /camera/realsense/color/camera_info
+- /camera/realsense/depth/image_rect_raw
+- /camera/realsense/depth/camera_info
+- /camera/realsense/aligned_depth_to_color/image_raw
+- /camera/realsense/imu/gyro
+- /camera/realsense/imu/accel
