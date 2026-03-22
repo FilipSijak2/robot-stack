@@ -140,6 +140,15 @@ services:
       - UDEV=1
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      # Set to 0 to run in passthrough mode (republish images without AI inference).
+      # Set to 1 and configure HAILO_GST_PIPELINE to enable Hailo inference.
+      # Example pipeline for yolov8 detection on Hailo-8L:
+      #   HAILO_GST_PIPELINE=appsrc name=ros_src ! videoconvert !
+      #     hailonet hef-path=/root/hailo-rpi5-examples/resources/yolov8s_h8l.hef !
+      #     hailofilter so-path=/usr/lib/hailo-post-processes/libyolo_hailortpp_post.so !
+      #     appsink name=ros_sink emit-signals=true
+      - AI_KIT_REQUIRE_HAILO=0
+      - HAILO_GST_PIPELINE=${HAILO_GST_PIPELINE:-}
     devices:
       - /dev/dri:/dev/dri
       - /dev:/dev
@@ -257,8 +266,7 @@ services:
     restart: always
 
   # Bag file browser — browse and download bag files from a web browser.
-  # Access at: http://<pi-ip>:8080  (default login: admin / admin)
-  # Change the password after first login via Settings > User Management.
+  # Access at: http://<pi-ip>:8080  (no login required)
   bag_browser:
     image: filebrowser/filebrowser:latest
     container_name: bag_browser_cont
@@ -266,9 +274,7 @@ services:
       - "8080:80"
     volumes:
       - ./bags:/srv:ro
-    environment:
-      - FB_NOAUTH=false
-    command: ["--root", "/srv", "--port", "80", "--address", "0.0.0.0"]
+    command: ["--root", "/srv", "--port", "80", "--address", "0.0.0.0", "--noauth"]
     restart: always
 
   healthcheck_cont:
