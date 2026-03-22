@@ -52,27 +52,14 @@ echo "[1/5] Installing kernel headers and build tools..."
 # Allow update to partially fail (e.g. third-party repos like librealsense
 # returning 403). Standard Ubuntu repos will still be refreshed correctly.
 apt-get update -qq || true
+# Only the essentials for compiling the DKMS PCIe driver.
+# GStreamer/OpenCV/etc. come bundled with the hailo-tappas-core .deb in step 4.
 apt-get install -y --no-install-recommends \
   "linux-headers-$(uname -r)" \
   dkms \
   build-essential \
-  pkg-config \
-  cmake \
-  ffmpeg \
-  libgstreamer1.0-dev \
-  libgstreamer-plugins-base1.0-dev \
-  libgstreamer-plugins-bad1.0-dev \
-  gstreamer1.0-plugins-base \
-  gstreamer1.0-plugins-good \
-  gstreamer1.0-plugins-bad \
-  gstreamer1.0-libav \
-  libzmq3-dev \
-  libopencv-dev \
-  python3-gi \
-  python3-gi-cairo \
-  libgirepository1.0-dev \
-  libcairo2-dev \
-  rapidjson-dev
+  git \
+  wget
 
 # --- 2. Build the PCIe kernel driver from source via DKMS ---
 # There is no pre-built Ubuntu binary for the Hailo PCIe driver.
