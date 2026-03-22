@@ -265,15 +265,17 @@ services:
       - foxglove_bridge
     restart: always
 
-  # Bag file browser — browse and download bag files from a web browser.
+  # File browser — browse bags and logs from a web browser.
   # Access at: http://<pi-ip>:8080  (no login required)
+  # Shows two folders: bags/ and logs/
   bag_browser:
     image: filebrowser/filebrowser:latest
     container_name: bag_browser_cont
     ports:
       - "8080:80"
     volumes:
-      - ./bags:/srv:ro
+      - ./bags:/srv/bags:ro
+      - ./logs:/srv/logs:ro
     command: ["--root", "/srv", "--port", "80", "--address", "0.0.0.0", "--noauth"]
     restart: always
 
