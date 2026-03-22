@@ -49,7 +49,9 @@ echo
 
 # --- 1. Kernel headers + build tools (needed for DKMS PCIe driver build) ---
 echo "[1/5] Installing kernel headers and build tools..."
-apt-get update -qq
+# Allow update to partially fail (e.g. third-party repos like librealsense
+# returning 403). Standard Ubuntu repos will still be refreshed correctly.
+apt-get update -qq || true
 apt-get install -y --no-install-recommends \
   "linux-headers-$(uname -r)" \
   dkms \
