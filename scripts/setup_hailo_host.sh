@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# setup_hailo_host.sh — Run ONCE on the Raspberry Pi host (Ubuntu 24.04 arm64).
+# setup_hailo_host.sh - Run ONCE on the Raspberry Pi host (Ubuntu 24.04 arm64).
 #
 # Installs the Hailo AI Kit runtime on the host:
-#   1. Kernel headers (required to DKMS-build the PCIe driver)
-#   2. hailort-pcie-driver  — DKMS kernel module + udev rules + firmware
-#   3. hailort              — userspace runtime library (libhailort.so)
-#   4. hailo-tappas-core   — GStreamer hailonet plugin + Python bindings
+#   1. Kernel headers (required to build the PCIe driver)
+#   2. hailort-pcie-driver - PCIe kernel module + udev rules + firmware
+#   3. hailort             - userspace runtime library (libhailort.so)
+#   4. hailo-tappas-core   - GStreamer hailonet plugin + Python bindings
 #
 # Packages are downloaded from the Raspberry Pi Debian archive, which hosts
 # Ubuntu-compatible arm64 debs for HailoRT and TAPPAS Core.
 # (Reference: https://ubuntu.com/blog/hackers-guide-to-the-raspberry-pi-ai-kit-on-ubuntu)
 #
-# After this, the ai_kit container bind-mounts the host libs — no
+# After this, the ai_kit container bind-mounts the host libs - no
 # downloading or installation happens inside the container.
 #
 # Usage:
@@ -47,12 +47,12 @@ echo "    HailoRT:     ${HAILORT_VERSION}"
 echo "    TAPPAS Core: ${TAPPAS_VERSION}"
 echo
 
-# --- 1. Kernel headers + build tools (needed for DKMS PCIe driver build) ---
+# --- 1. Kernel headers + build tools (needed for PCIe driver build) ---
 echo "[1/5] Installing kernel headers and build tools..."
 # Allow update to partially fail (e.g. third-party repos like librealsense
 # returning 403). Standard Ubuntu repos will still be refreshed correctly.
 apt-get update -qq || true
-# Only the essentials for compiling the DKMS PCIe driver.
+# Only the essentials for compiling/installing the PCIe driver.
 # GStreamer/OpenCV/etc. come bundled with the hailo-tappas-core .deb in step 4.
 apt-get install -y --no-install-recommends \
   "linux-headers-$(uname -r)" \
@@ -61,15 +61,15 @@ apt-get install -y --no-install-recommends \
   git \
   wget
 
-# --- 2. Build the PCIe kernel driver from source via DKMS ---
-# There is no pre-built Ubuntu binary for the Hailo PCIe driver.
-# We clone the matching version and install via DKMS so it survives kernel updates.
-echo "[2/5] Building Hailo PCIe driver (DKMS)..."
+# --- 2. Build and install the PCIe kernel driver from source ---
+# Hailo does not provide this driver as an Ubuntu binary package.
+# We install from the matching source release so it aligns with HailoRT.
+echo "[2/5] Building and installing Hailo PCIe driver..."
 DRIVER_DIR="/usr/src/hailo_pci-${HAILORT_VERSION}"
 if [ -d "${DRIVER_DIR}" ]; then
   echo "  Driver source already present at ${DRIVER_DIR}, skipping clone."
 else
-  git clone --depth 1 --branch "v${HAILORT_VERSION}" \
+  git -c advice.detachedHead=false clone --depth 1 --branch "v${HAILORT_VERSION}" \
     https://github.com/hailo-ai/hailort-drivers.git \
     "${DRIVER_DIR}"
 fi
@@ -78,14 +78,25 @@ fi
 cd "${DRIVER_DIR}"
 ./download_firmware.sh
 mkdir -p /lib/firmware/hailo
-cp hailo8_fw.*.bin /lib/firmware/hailo/hailo8_fw.bin
-cp ./linux/pcie/51-hailo-udev.rules /etc/udev/rules.d/
+cp -f hailo8_fw.*.bin /lib/firmware/hailo/hailo8_fw.bin
 
-# Install via DKMS
-dkms add "${DRIVER_DIR}" || true
-dkms build "hailo_pci/${HAILORT_VERSION}"
-dkms install "hailo_pci/${HAILORT_VERSION}"
-cd -
+# Build/install driver from the PCIe subdirectory.
+PCIE_DIR="${DRIVER_DIR}/linux/pcie"
+if [ ! -d "${PCIE_DIR}" ]; then
+  echo "ERROR: Missing PCIe driver directory: ${PCIE_DIR}" >&2
+  exit 1
+fi
+
+cd "${PCIE_DIR}"
+make all
+make install
+if ! modprobe hailo_pci 2>/dev/null; then
+  modprobe hailo1x_pci || true
+fi
+cp -f 51-hailo-udev.rules /etc/udev/rules.d/
+udevadm control --reload-rules
+udevadm trigger
+cd - >/dev/null
 
 # --- 3. Download debs from Raspberry Pi archive ---
 TMP_DIR="$(mktemp -d)"
