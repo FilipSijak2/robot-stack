@@ -47,6 +47,23 @@ echo "    HailoRT:     ${HAILORT_VERSION}"
 echo "    TAPPAS Core: ${TAPPAS_VERSION}"
 echo
 
+# --- 0. Wait for any background apt/dpkg process to finish ---
+echo "[0/5] Waiting for dpkg lock (unattended-upgrades may be running)..."
+systemctl stop unattended-upgrades 2>/dev/null || true
+# Wait up to 120 s for the lock to be released
+LOCK_TIMEOUT=120
+LOCK_ELAPSED=0
+while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+  if [ "${LOCK_ELAPSED}" -ge "${LOCK_TIMEOUT}" ]; then
+    echo "ERROR: dpkg lock still held after ${LOCK_TIMEOUT}s. Try: sudo killall unattended-upgrades" >&2
+    exit 1
+  fi
+  echo "  dpkg locked — waiting (${LOCK_ELAPSED}s)..."
+  sleep 5
+  LOCK_ELAPSED=$((LOCK_ELAPSED + 5))
+done
+echo "  Lock free, continuing."
+
 # --- 1. Kernel headers + build tools (needed for PCIe driver build) ---
 echo "[1/5] Installing kernel headers and build tools..."
 # Allow update to partially fail (e.g. third-party repos like librealsense
