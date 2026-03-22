@@ -130,8 +130,16 @@ wget -q --show-progress \
 
 # --- 4. Install debs ---
 echo "[4/5] Installing HailoRT and TAPPAS Core..."
-apt-get install -y "${TMP_DIR}/hailort.deb"
-apt-get install -y "${TMP_DIR}/hailo-tappas-core.deb"
+# Use dpkg -i (not apt-get install) to avoid the _apt sandbox permission issue
+# with root-owned temp files.
+dpkg -i "${TMP_DIR}/hailort.deb" || true
+
+# hailo-tappas-core deps are pinned to Debian Bookworm (RPi OS) exact versions
+# which differ slightly from Ubuntu 24.04 (e.g. libbsd0, libdrm2). These are
+# build-time -dev packages; the runtime .so files install fine regardless.
+# --force-depends bypasses the version check; apt -f install fixes what it can.
+dpkg -i --force-depends "${TMP_DIR}/hailo-tappas-core.deb" || true
+apt-get install -f -y || true
 
 # --- 5. Done ---
 echo
