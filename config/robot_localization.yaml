@@ -1,6 +1,7 @@
 # Extended Kalman Filter configuration for sensor fusion
-# Combines odometry from encoders with the filtered RealSense D455 IMU topic.
-# Legacy Arduino IMU remains available on /imu/arduino for fallback/debug.
+# Combines wheel odometry from the robot bridge with the filtered RealSense D455
+# IMU topic. Legacy Arduino IMU remains available on /imu/arduino for
+# fallback/debug.
 
 ekf_filter_node:
   ros__parameters:
@@ -18,8 +19,8 @@ ekf_filter_node:
     base_link_frame: base_link
     world_frame: odom
     
-    # Odometry configuration (from Arduino encoders via micro-ROS)
-    odom0: /odom
+    # Odometry configuration (from Nano ESP32 via robot_bridge)
+    odom0: /wheel_odom
     odom0_config: [true,  true,  false,  # x, y, z positions
                    false, false, true,   # roll, pitch, yaw orientations  
                    true,  true,  false,  # x, y, z velocities
