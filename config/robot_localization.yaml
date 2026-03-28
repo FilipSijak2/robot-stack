@@ -1,5 +1,6 @@
 # Extended Kalman Filter configuration for sensor fusion
-# Combines odometry from encoders and IMU data from Arduino R4 WiFi
+# Combines odometry from encoders with the filtered RealSense D455 IMU topic.
+# Legacy Arduino IMU remains available on /imu/arduino for fallback/debug.
 
 ekf_filter_node:
   ros__parameters:
@@ -29,7 +30,7 @@ ekf_filter_node:
     odom0_differential: false
     odom0_relative: false
     
-    # IMU configuration (from Arduino R4 WiFi)
+    # IMU configuration (filtered RealSense D455 IMU from sensor_fusion_cont)
     imu0: /imu/data
     imu0_config: [false, false, false,   # x, y, z positions
                   true,  true,  true,    # roll, pitch, yaw orientations

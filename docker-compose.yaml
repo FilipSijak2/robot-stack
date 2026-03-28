@@ -110,11 +110,15 @@
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
       - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+      - SF_IMU_SOURCE=${SF_IMU_SOURCE:-realsense}
+      - SF_IMU_INPUT_TOPIC=${SF_IMU_INPUT_TOPIC:-/camera/realsense/imu}
+      - SF_IMU_OUTPUT_TOPIC=${SF_IMU_OUTPUT_TOPIC:-/imu/data}
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - ./config/robot_localization.yaml:/app/robot_localization.yaml
     depends_on:
       - database_cont
+      - realsense_cont
       - slam_cont
       - robot_bridge
     restart: always
@@ -127,6 +131,7 @@
     environment:
       - SERIAL_PORT=${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}
       - SERIAL_BAUD=${BRIDGE_SERIAL_BAUD:-115200}
+      - IMU_TOPIC=${BRIDGE_IMU_TOPIC:-/imu/arduino}
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
       - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
@@ -247,6 +252,7 @@
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - /dev:/dev
+      - /sys/bus:/sys/bus
     environment:
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
@@ -261,6 +267,7 @@
       - RS_ENABLE_GYRO=true
       - RS_ENABLE_ACCEL=true
       - RS_UNITE_IMU_METHOD=${RS_UNITE_IMU_METHOD:-linear_interpolation}
+      - RS_BASE_FRAME_ID=${RS_BASE_FRAME_ID:-realsense_link}
       - RS_DEPTH_PROFILE=640x480x15
       - RS_COLOR_PROFILE=640x480x15
       - RS_ALIGN_DEPTH=true

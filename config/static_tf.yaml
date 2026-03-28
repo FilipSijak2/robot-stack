@@ -22,6 +22,14 @@ static_transforms:
     translation: [0.0, 0.0, 0.0]
     rotation_rpy: [-1.5708, 0.0, -1.5708]
 
+  # Placeholder mount for the RealSense body frame. This should match
+  # RS_BASE_FRAME_ID in docker-compose (default: realsense_link).
+  # The driver publishes the internal camera -> IMU frame tree below this link.
+  - parent: base_link
+    child: realsense_link
+    translation: [0.12, 0.00, 0.32]
+    rotation_rpy: [0.0, 0.0, 0.0]
+
   # Add more transforms as needed, e.g. imu, camera, etc.
   # - parent: base_link
   #   child: imu_link
