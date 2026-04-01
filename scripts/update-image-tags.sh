@@ -11,6 +11,8 @@ YELLOW='\033[0;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 DO_PULL=1
+TAGS_TMP="$(mktemp)"
+trap 'rm -f "$TAGS_TMP"' EXIT
 
 usage() {
   cat <<'EOF'
@@ -93,6 +95,7 @@ declare -A REPO_MAP=(
   [AI_KIT_TAG]="ai_kit"
   [CAMERA_TAG]="camera"
   [REALSENSE_TAG]="realsense"
+  [ROSBRIDGE_TAG]="rosbridge"
   [BAG_RECORDER_TAG]="bag_recorder"
   [HEALTHCHECK_TAG]="healthcheck"
   [FOXGLOVE_BRIDGE_TAG]="foxglove_bridge"
@@ -117,18 +120,18 @@ fetch_tags() {
   fi
 
   local status
-  : > /tmp/tags.json
-  status=$(curl -sS -o /tmp/tags.json -w '%{http_code}' "${auth[@]}" "$url_primary" || echo 000)
+  : > "$TAGS_TMP"
+  status=$(curl -sS -o "$TAGS_TMP" -w '%{http_code}' "${auth[@]}" "$url_primary" || echo 000)
   if [ "$status" = "200" ]; then
-    jq -r '.tags[]?' /tmp/tags.json
+    jq -r '.tags[]?' "$TAGS_TMP"
     return 0
   fi
 
   if [ -n "$url_fallback" ]; then
-    : > /tmp/tags.json
-    status=$(curl -sS -o /tmp/tags.json -w '%{http_code}' "${auth[@]}" "$url_fallback" || echo 000)
+    : > "$TAGS_TMP"
+    status=$(curl -sS -o "$TAGS_TMP" -w '%{http_code}' "${auth[@]}" "$url_fallback" || echo 000)
     if [ "$status" = "200" ]; then
-      jq -r '.tags[]?' /tmp/tags.json
+      jq -r '.tags[]?' "$TAGS_TMP"
       return 0
     fi
   fi
@@ -137,8 +140,8 @@ fetch_tags() {
   if [ "$status" = "401" ]; then
     echo "[WARN] ${repo}: authentication required (set REGISTRY_USER/REGISTRY_PASS in .env)" >&2
   fi
-  if [ -s /tmp/tags.json ]; then
-    echo "[WARN] ${repo}: response body: $(tr -d '\n' </tmp/tags.json | head -c 200)" >&2
+  if [ -s "$TAGS_TMP" ]; then
+    echo "[WARN] ${repo}: response body: $(tr -d '\n' <"$TAGS_TMP" | head -c 200)" >&2
   fi
   return 1
 }

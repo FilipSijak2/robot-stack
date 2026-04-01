@@ -1,0 +1,38 @@
+name: Docker Compose Config
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: docker compose config
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate docker-compose.yaml
+        id: compose_config
+        run: docker compose -f docker-compose.yaml --env-file .env config > /dev/null
+
+      - name: Append summary
+        if: success() || failure()
+        run: |
+          {
+            echo "## Docker Compose Config"
+            echo
+            if [ "${{ steps.compose_config.outcome }}" = "success" ]; then
+              echo "- \`docker compose -f docker-compose.yaml --env-file .env config\` completed successfully."
+            else
+              echo "- \`docker compose -f docker-compose.yaml --env-file .env config\` failed. Check the workflow logs for details."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

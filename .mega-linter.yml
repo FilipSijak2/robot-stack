@@ -1,4 +1,6 @@
-﻿DEFAULT_BRANCH: devel
+DEFAULT_BRANCH: devel
+# Keep the repo default as diff-only; the workflow overrides this to full scans
+# on push/workflow_dispatch while PRs stay fast.
 VALIDATE_ALL_CODEBASE: false
 CLEAR_REPORT_FOLDER: true
 SHOW_ELAPSED_TIME: true
@@ -11,8 +13,11 @@ ENABLE_LINTERS:
   - ACTION_ACTIONLINT
   - BASH_SHELLCHECK
   - BASH_SHFMT
+  - ENV_DOTENV_LINTER
   - YAML_YAMLLINT
 
+# Keep correctness/configuration checks blocking, while .env hygiene is added
+# as warning-only feedback first.
 ENABLE_ERRORS_LINTERS:
   - ACTION_ACTIONLINT
   - YAML_YAMLLINT
