@@ -17,7 +17,7 @@
       - CMD_VEL_OUT=/cmd_vel
       - MANUAL_DEFAULT=false
       - MANUAL_TIMEOUT_S=0.5
-      - MAP_FILE=${MAP_FILE:-/app/map.yaml}
+      - MAP_FILE=${MAP_FILE:-}
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - ./config/nav2_params.yaml:/app/nav2_params.yaml
@@ -113,6 +113,7 @@
       - SF_IMU_SOURCE=${SF_IMU_SOURCE:-realsense}
       - SF_IMU_INPUT_TOPIC=${SF_IMU_INPUT_TOPIC:-/camera/realsense/imu}
       - SF_IMU_OUTPUT_TOPIC=${SF_IMU_OUTPUT_TOPIC:-/imu/data}
+      - SF_EKF_CONFIG=/app/robot_localization.yaml
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - ./config/robot_localization.yaml:/app/robot_localization.yaml

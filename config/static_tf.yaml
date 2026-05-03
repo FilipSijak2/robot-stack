@@ -1,13 +1,17 @@
 static_transforms:
-  # Identity odom -> base_link so SLAM can build map (replace later with real wheel odom TF)
-  - parent: odom
-    child: base_link
-    translation: [0.0, 0.0, 0.0]
-    rotation_rpy: [0.0, 0.0, 0.0]
-  # Placeholder transform laser -> base_link (translation in meters, rotation RPY in radians)
+  # Sensor mount transforms only.
+  # Dynamic odom -> base_link must come from robot_localization EKF.
+  # map -> odom remains owned by slam_toolbox.
+  #
+  # base_link convention in this stack:
+  # - base_link is rigidly attached to robot body (does not move relative to robot)
+  # - base_link pose changes in odom/map as robot moves (published by EKF)
+  # - robot center is at footprint center, approximately 5 cm above ground
+
+  # Lidar mount transform (translation in meters, rotation RPY in radians)
   - parent: base_link
     child: laser
-    translation: [0.0, 0.05, 0.10]   # x, y, z (placeholder: laser 5cm to the left, 10cm above base_link)
+    translation: [0.0, 0.02, 0.18]   # x, y, z (lidar: x=0, y=+2cm, z=+18cm from base_link)
     rotation_rpy: [0.0, 0.0, 0.0]    # roll, pitch, yaw
 
   # Camera mount (adjust translation & rotation_rpy to real mount position)
@@ -25,7 +29,7 @@ static_transforms:
   # Physical mount of the RealSense body relative to the robot base.
   - parent: base_link
     child: realsense_link
-    translation: [0.12, 0.00, 0.32]
+    translation: [0.0, 0.08, 0.10]   # x, y, z (realsense: x=0, y=+8cm, z=+10cm from base_link)
     rotation_rpy: [0.0, 0.0, 0.0]
 
   # Alias from the logical mount frame to the actual RealSense driver root.
