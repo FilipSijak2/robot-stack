@@ -129,23 +129,13 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/bridge:${BRIDGE_TAG}
     container_name: robot_bridge_cont
     network_mode: host
+    env_file:
+      - ./config/bridge_rpi_direct.env
     environment:
       - BRIDGE_MODE=${BRIDGE_MODE:-serial_legacy}
       - SERIAL_PORT=${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}
       - SERIAL_BAUD=${BRIDGE_SERIAL_BAUD:-115200}
       - IMU_TOPIC=${BRIDGE_IMU_TOPIC:-/imu/arduino}
-      - I2C_BUS=${BRIDGE_I2C_BUS:-1}
-      - I2C_MUX_ADDR=${BRIDGE_I2C_MUX_ADDR:-0x70}
-      - AS5600_ADDR=${BRIDGE_AS5600_ADDR:-0x36}
-      - LEFT_MUX_CHANNEL=${BRIDGE_LEFT_MUX_CHANNEL:-0}
-      - RIGHT_MUX_CHANNEL=${BRIDGE_RIGHT_MUX_CHANNEL:-4}
-      - DRV_AIN1_PIN=${BRIDGE_DRV_AIN1_PIN:-18}
-      - DRV_AIN2_PIN=${BRIDGE_DRV_AIN2_PIN:-23}
-      - DRV_BIN1_PIN=${BRIDGE_DRV_BIN1_PIN:-19}
-      - DRV_BIN2_PIN=${BRIDGE_DRV_BIN2_PIN:-24}
-      - DRV_SLEEP_PIN=${BRIDGE_DRV_SLEEP_PIN:--1}
-      - WHEEL_RADIUS_M=${BRIDGE_WHEEL_RADIUS_M:-0.033}
-      - WHEEL_BASE_M=${BRIDGE_WHEEL_BASE_M:-0.20}
       - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
       - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
