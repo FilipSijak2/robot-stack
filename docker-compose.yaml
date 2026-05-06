@@ -7,6 +7,11 @@
     network_mode: host
     env_file:
       - ./config/containers/nav_cont.env
+    environment:
+      CYCLONEDDS_URI: ${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+      MAP_FILE: ${MAP_FILE:-}
+      RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID}
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - ./config/containers/nav2_params.yaml:/app/nav2_params.yaml
@@ -29,6 +34,10 @@
     network_mode: host
     env_file:
       - ./config/containers/database_cont.env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_USER: ${DB_USER}
     volumes:
       - ./srv:/srv
     healthcheck:
@@ -44,6 +53,10 @@
     container_name: laser_driver_cont
     env_file:
       - ./config/containers/laser_driver.env
+    environment:
+      CYCLONEDDS_URI: ${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+      RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
     devices:
@@ -69,6 +82,14 @@
       - ./config/containers/static_tf.yaml:/app/static_tf.yaml
     env_file:
       - ./config/containers/slam_cont.env
+    environment:
+      CYCLONEDDS_URI: ${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+      DB_NAME: ${DB_NAME}
+      DB_PASS: ${DB_PASS}
+      DB_USER: ${DB_USER}
+      MAP_ROOT: ${MAP_ROOT}
+      RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID}
     healthcheck:
       test: ["CMD-SHELL", "pgrep -f slam_toolbox >/dev/null || exit 1"]
       interval: 15s
@@ -83,6 +104,13 @@
     network_mode: host
     env_file:
       - ./config/containers/sensor_fusion_cont.env
+    environment:
+      CYCLONEDDS_URI: ${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+      RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID}
+      SF_IMU_INPUT_TOPIC: ${SF_IMU_INPUT_TOPIC:-/camera/realsense/imu}
+      SF_IMU_OUTPUT_TOPIC: ${SF_IMU_OUTPUT_TOPIC:-/imu/data}
+      SF_IMU_SOURCE: ${SF_IMU_SOURCE:-realsense}
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - ./config/containers/robot_localization.yaml:/app/robot_localization.yaml
@@ -101,6 +129,14 @@
     env_file:
       - ./config/containers/robot_bridge.env
       - ./config/containers/bridge_rpi_direct.env
+    environment:
+      BRIDGE_MODE: ${BRIDGE_MODE:-serial_legacy}
+      CYCLONEDDS_URI: ${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+      IMU_TOPIC: ${BRIDGE_IMU_TOPIC:-/imu/arduino}
+      RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID}
+      SERIAL_BAUD: ${BRIDGE_SERIAL_BAUD:-115200}
+      SERIAL_PORT: ${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
     devices:
@@ -121,6 +157,13 @@
     container_name: ai_kit_cont
     env_file:
       - ./config/containers/ai_kit_cont.env
+    environment:
+      CYCLONEDDS_URI: ${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+      DISPLAY: ${DISPLAY:-}
+      HAILO_GST_PIPELINE: ${HAILO_GST_PIPELINE:-}
+      RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID}
+      XDG_RUNTIME_DIR: ${XDG_RUNTIME_DIR:-}
     devices:
       - /dev/dri:/dev/dri
       - /dev:/dev
@@ -154,6 +197,10 @@
     container_name: rosbridge_websocket_cont
     env_file:
       - ./config/containers/rosbridge_websocket.env
+    environment:
+      CYCLONEDDS_URI: ${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+      RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
     network_mode: host
@@ -166,6 +213,10 @@
     network_mode: host
     env_file:
       - ./config/containers/foxglove_bridge.env
+    environment:
+      CYCLONEDDS_URI: ${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+      RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
     depends_on:
@@ -200,6 +251,14 @@
       - /sys/bus:/sys/bus
     env_file:
       - ./config/containers/realsense_cont.env
+    environment:
+      CYCLONEDDS_URI: ${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+      RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
+      RS_COMPRESSED_JPEG_QUALITY: ${RS_COMPRESSED_JPEG_QUALITY:-40}
+      RS_SERIAL: ${REALSENSE_SERIAL:-}
+      RS_UNITE_IMU_METHOD: ${RS_UNITE_IMU_METHOD:-linear_interpolation}
+      RS_USB_PORT_ID: ${REALSENSE_USB_PORT_ID:-}
     restart: always
 
 
@@ -209,6 +268,10 @@
     network_mode: host
     env_file:
       - ./config/containers/bag_recorder_cont.env
+    environment:
+      CYCLONEDDS_URI: ${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+      RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
     volumes:
       - ./config/containers/recorded_topics.yaml:/config/recorded_topics.yaml:ro
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
@@ -237,6 +300,8 @@
     container_name: container_log_collector_cont
     env_file:
       - ./config/containers/container_log_collector.env
+    environment:
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME:-stack}
     volumes:
       - ./logs:/logs
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -250,6 +315,13 @@
     network_mode: host
     env_file:
       - ./config/containers/healthcheck_cont.env
+    environment:
+      BRIDGE_SERIAL_DEVICE: ${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}
+      CAMERA_DEVICE: ${CAMERA_DEVICE:-/dev/video0}
+      CYCLONEDDS_URI: ${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+      LIDAR_DEVICE: ${LIDAR_DEVICE:-/dev/ttyUSB0}
+      RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}
+      ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
     depends_on:
       - nav_cont
       - database_cont
