@@ -4,7 +4,7 @@
 # `/imu/data` is the filtered RealSense IMU used by the stack.
 # `/imu/arduino` is kept as a legacy fallback/debug stream.
 - /scan
-- /wheel_odom
+# - /wheel_odom
 - /tf
 - /tf_static
 - /map
