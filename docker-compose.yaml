@@ -5,23 +5,12 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/nav:${NAV_TAG}
     container_name: nav_cont
     network_mode: host
-    environment:
-      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
-      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
-      - ENABLE_CMD_VEL_MUX=1
-      - ENABLE_JOYSTICK=1
-      - JOYSTICK_DEV=/dev/input/js0
-      - CMD_VEL_AUTO=/cmd_vel_auto
-      - CMD_VEL_JOY=/cmd_vel_joy
-      - CMD_VEL_OUT=/cmd_vel
-      - MANUAL_DEFAULT=false
-      - MANUAL_TIMEOUT_S=0.5
-      - MAP_FILE=${MAP_FILE:-}
+    env_file:
+      - ./config/containers/nav_cont.env
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
-      - ./config/nav2_params.yaml:/app/nav2_params.yaml
-      - ./config/map.yaml:/app/map.yaml:ro
+      - ./config/containers/nav2_params.yaml:/app/nav2_params.yaml
+      - ./config/containers/map.yaml:/app/map.yaml:ro
       - ./srv:/srv
       - /dev/input:/dev/input:ro
     privileged: true
@@ -38,15 +27,12 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/db:${DB_TAG}
     container_name: database_cont
     network_mode: host
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_DB: ${DB_NAME}
-      PGDATA: /srv/db
+    env_file:
+      - ./config/containers/database_cont.env
     volumes:
       - ./srv:/srv
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -56,10 +42,8 @@
   laser_driver:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/laser_driver:${DRIVER_TAG}
     container_name: laser_driver_cont
-    environment:
-      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+    env_file:
+      - ./config/containers/laser_driver.env
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
     devices:
@@ -80,22 +64,13 @@
       - database_cont
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
-      - ./config/slam_params.yaml:/app/slam_params.yaml
+      - ./config/containers/slam_params.yaml:/app/slam_params.yaml
       - ./srv:/srv
-      - ./config/static_tf.yaml:/app/static_tf.yaml
-    environment:
-      - MAP_ROOT=${MAP_ROOT}
-      - DB_HOST=localhost
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
-      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
-      - STATIC_TF_FILE=/app/static_tf.yaml
-      - PUBLISH_LASER_STATIC_TF=0
+      - ./config/containers/static_tf.yaml:/app/static_tf.yaml
+    env_file:
+      - ./config/containers/slam_cont.env
     healthcheck:
-      test: ["CMD-SHELL", "pgrep -f slam_toolbox >/dev/null || exit 1" ]
+      test: ["CMD-SHELL", "pgrep -f slam_toolbox >/dev/null || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -106,17 +81,11 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/sensor_fusion:${SENSOR_FUSION_TAG}
     container_name: sensor_fusion_cont
     network_mode: host
-    environment:
-      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
-      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
-      - SF_IMU_SOURCE=${SF_IMU_SOURCE:-realsense}
-      - SF_IMU_INPUT_TOPIC=${SF_IMU_INPUT_TOPIC:-/camera/realsense/imu}
-      - SF_IMU_OUTPUT_TOPIC=${SF_IMU_OUTPUT_TOPIC:-/imu/data}
-      - SF_EKF_CONFIG=/app/robot_localization.yaml
+    env_file:
+      - ./config/containers/sensor_fusion_cont.env
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
-      - ./config/robot_localization.yaml:/app/robot_localization.yaml
+      - ./config/containers/robot_localization.yaml:/app/robot_localization.yaml
     depends_on:
       - database_cont
       - realsense_cont
@@ -130,15 +99,8 @@
     container_name: robot_bridge_cont
     network_mode: host
     env_file:
-      - ./config/bridge_rpi_direct.env
-    environment:
-      - BRIDGE_MODE=${BRIDGE_MODE:-serial_legacy}
-      - SERIAL_PORT=${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}
-      - SERIAL_BAUD=${BRIDGE_SERIAL_BAUD:-115200}
-      - IMU_TOPIC=${BRIDGE_IMU_TOPIC:-/imu/arduino}
-      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
-      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+      - ./config/containers/robot_bridge.env
+      - ./config/containers/bridge_rpi_direct.env
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
     devices:
@@ -157,22 +119,8 @@
   ai_kit_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/ai_kit:${AI_KIT_TAG}
     container_name: ai_kit_cont
-    environment:
-      - DISPLAY=${DISPLAY:-}
-      - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-}
-      - UDEV=1
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
-      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
-      # Set to 0 to run in passthrough mode (republish images without AI inference).
-      # Set to 1 and configure HAILO_GST_PIPELINE to enable Hailo inference.
-      # Example pipeline for yolov8 detection on Hailo-8L:
-      #   HAILO_GST_PIPELINE=appsrc name=ros_src ! videoconvert !
-      #     hailonet hef-path=/root/hailo-rpi5-examples/resources/yolov8s_h8l.hef !
-      #     hailofilter so-path=/usr/lib/hailo-post-processes/libyolo_hailortpp_post.so !
-      #     appsink name=ros_sink emit-signals=true
-      - AI_KIT_REQUIRE_HAILO=0
-      - HAILO_GST_PIPELINE=${HAILO_GST_PIPELINE:-}
+    env_file:
+      - ./config/containers/ai_kit_cont.env
     devices:
       - /dev/dri:/dev/dri
       - /dev:/dev
@@ -204,10 +152,8 @@
   rosbridge_websocket:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/rosbridge:${ROSBRIDGE_TAG}
     container_name: rosbridge_websocket_cont
-    environment:
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
+    env_file:
+      - ./config/containers/rosbridge_websocket.env
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
     network_mode: host
@@ -218,15 +164,8 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/foxglove_bridge:${FOXGLOVE_BRIDGE_TAG}
     container_name: foxglove_bridge_cont
     network_mode: host
-    environment:
-      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
-      - FOXGLOVE_PORT=${FOXGLOVE_PORT:-8765}
-      - FOXGLOVE_ADDRESS=${FOXGLOVE_ADDRESS:-0.0.0.0}
-      - FOXGLOVE_TLS=${FOXGLOVE_TLS:-0}
-      - FOXGLOVE_TLS_CERT=${FOXGLOVE_TLS_CERT:-/etc/ssl/certs/foxglove_bridge.crt}
-      - FOXGLOVE_TLS_KEY=${FOXGLOVE_TLS_KEY:-/etc/ssl/private/foxglove_bridge.key}
+    env_file:
+      - ./config/containers/foxglove_bridge.env
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
     depends_on:
@@ -246,7 +185,7 @@
   #     - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
   #     - ROS_NAMESPACE=camera
   #   volumes:
-  #     - ./config/camera_info.yaml:/app/camera_info.yaml:ro
+  #     - ./config/containers/camera_info.yaml:/app/camera_info.yaml:ro
   #   restart: always
 
   # RealSense D455
@@ -259,26 +198,8 @@
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - /dev:/dev
       - /sys/bus:/sys/bus
-    environment:
-      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
-      - RS_CAMERA_NAME=realsense
-      - RS_USB_PORT_ID=${REALSENSE_USB_PORT_ID:-}
-      - RS_SERIAL=${REALSENSE_SERIAL:-}
-      - RS_ENABLE_DEPTH=true
-      - RS_ENABLE_COLOR=true
-      - RS_ENABLE_INFRA1=false
-      - RS_ENABLE_INFRA2=false
-      - RS_ENABLE_GYRO=true
-      - RS_ENABLE_ACCEL=true
-      - RS_UNITE_IMU_METHOD=${RS_UNITE_IMU_METHOD:-linear_interpolation}
-      - RS_BASE_FRAME_ID=${RS_BASE_FRAME_ID:-realsense_link}
-      - RS_DEPTH_PROFILE=640x480x15
-      - RS_COLOR_PROFILE=640x480x15
-      - RS_ALIGN_DEPTH=true
-      - RS_ENABLE_POINTCLOUD=false
-      - RS_COMPRESSED_JPEG_QUALITY=${RS_COMPRESSED_JPEG_QUALITY:-40}
+    env_file:
+      - ./config/containers/realsense_cont.env
     restart: always
 
 
@@ -286,15 +207,10 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/bag_recorder:${BAG_RECORDER_TAG}
     container_name: bag_recorder_cont
     network_mode: host
-    environment:
-      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
-      - TOPICS_FILE=/config/recorded_topics.yaml
-      - BAG_OUTPUT_DIR=/bags
-      - MAX_BAG_MB=150
+    env_file:
+      - ./config/containers/bag_recorder_cont.env
     volumes:
-      - ./config/recorded_topics.yaml:/config/recorded_topics.yaml:ro
+      - ./config/containers/recorded_topics.yaml:/config/recorded_topics.yaml:ro
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - ./bags:/bags
     depends_on:
@@ -319,15 +235,12 @@
   container_log_collector:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/healthcheck:${HEALTHCHECK_TAG}
     container_name: container_log_collector_cont
-    environment:
-      - TZ=Europe/Zagreb
-      - LOG_DIR=/logs
-      - LOGGING_CONFIG=/config/logging.yaml
-      - COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME:-stack}
+    env_file:
+      - ./config/containers/container_log_collector.env
     volumes:
       - ./logs:/logs
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./config/logging.yaml:/config/logging.yaml:ro
+      - ./config/containers/logging.yaml:/config/logging.yaml:ro
     entrypoint: ["/usr/local/bin/container_log_collector.py"]
     restart: always
 
@@ -335,15 +248,8 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/healthcheck:${HEALTHCHECK_TAG}
     container_name: healthcheck_cont
     network_mode: host
-    environment:
-      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-      - CYCLONEDDS_URI=${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
-      - LOG_DIR=/logs
-      - LIDAR_DEVICE=${LIDAR_DEVICE:-/dev/ttyUSB0}
-      - BRIDGE_SERIAL_DEVICE=${BRIDGE_SERIAL_DEVICE:-/dev/ttyACM0}
-      - CAMERA_DEVICE=${CAMERA_DEVICE:-/dev/video0}
-      - HEALTHCHECK_LOG_TO_FILE=0
+    env_file:
+      - ./config/containers/healthcheck_cont.env
     depends_on:
       - nav_cont
       - database_cont
@@ -357,12 +263,5 @@
       - /run/udev:/run/udev:ro
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
     restart: always
-
-
 volumes:
   hailo_examples_data: {}
-
-
-
-
-

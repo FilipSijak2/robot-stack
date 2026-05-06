@@ -26,10 +26,14 @@ while IFS= read -r line; do
   [ -z "$entry" ] && continue
   REPO_BASENAME="$(basename "$REPO_ROOT")"
   case "$entry" in
-    "$REPO_BASENAME"/*) entry="${entry#${REPO_BASENAME}/}" ;;
+    "$REPO_BASENAME"/*) entry="${entry#"${REPO_BASENAME}"/}" ;;
   esac
-  if [ ! -e "$REPO_ROOT/$entry" ] && [[ "$entry" != */* ]] && [ -e "$REPO_ROOT/config/$entry" ]; then
-    entry="config/$entry"
+  if [ ! -e "$REPO_ROOT/$entry" ] && [[ "$entry" != */* ]]; then
+    if [ -e "$REPO_ROOT/config/containers/$entry" ]; then
+      entry="config/containers/$entry"
+    elif [ -e "$REPO_ROOT/config/$entry" ]; then
+      entry="config/$entry"
+    fi
   fi
   PROTECTED+=("$entry")
 done < "$MANIFEST"

@@ -95,8 +95,8 @@ ATT=0
 # If user left defaults but container uses custom POSTGRES_USER/POSTGRES_DB, auto-adjust before waiting
 if [ "$DB_USER" = "postgres" ] || [ "$DB_NAME" = "postgres" ]; then
   # We have to attempt a lightweight exec to read env; ignore failures (e.g. compose vs container)
-  CONTAINER_POSTGRES_USER=$(run_exec /bin/sh -c 'echo ${POSTGRES_USER:-}' 2>/dev/null || true)
-  CONTAINER_POSTGRES_DB=$(run_exec /bin/sh -c 'echo ${POSTGRES_DB:-}' 2>/dev/null || true)
+  CONTAINER_POSTGRES_USER=$(run_exec /bin/sh -c "echo \${POSTGRES_USER:-}" 2>/dev/null || true)
+  CONTAINER_POSTGRES_DB=$(run_exec /bin/sh -c "echo \${POSTGRES_DB:-}" 2>/dev/null || true)
   if [ -n "$CONTAINER_POSTGRES_USER" ] && [ "$DB_USER" = "postgres" ]; then
     warn "DB_USER nije specificiran; auto-detektiran POSTGRES_USER=$CONTAINER_POSTGRES_USER"
     DB_USER="$CONTAINER_POSTGRES_USER"

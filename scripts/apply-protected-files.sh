@@ -81,13 +81,18 @@ while IFS= read -r line; do
   # If user mistakenly prefixed with repo dir name (e.g. stack/.env), strip it
   REPO_BASENAME="$(basename "$REPO_ROOT")"
   case "$entry" in
-    "$REPO_BASENAME"/*) entry="${entry#${REPO_BASENAME}/}" ;;
+    "$REPO_BASENAME"/*) entry="${entry#"${REPO_BASENAME}"/}" ;;
   esac
   [ -z "$entry" ] && continue
-  # Auto-resolve common nesting (e.g. user wrote 'static_tf.yaml' but file is under config/static_tf.yaml)
-  if [ ! -e "$REPO_ROOT/$entry" ] && [[ "$entry" != */* ]] && [ -e "$REPO_ROOT/config/$entry" ]; then
-    echo "[INFO] Auto-resolving $entry -> config/$entry" >&2
-    entry="config/$entry"
+  # Auto-resolve common nesting (e.g. user wrote 'static_tf.yaml' but file is under config/containers/static_tf.yaml)
+  if [ ! -e "$REPO_ROOT/$entry" ] && [[ "$entry" != */* ]]; then
+    if [ -e "$REPO_ROOT/config/containers/$entry" ]; then
+      echo "[INFO] Auto-resolving $entry -> config/containers/$entry" >&2
+      entry="config/containers/$entry"
+    elif [ -e "$REPO_ROOT/config/$entry" ]; then
+      echo "[INFO] Auto-resolving $entry -> config/$entry" >&2
+      entry="config/$entry"
+    fi
   fi
 
   COLLECTED+=("$entry")

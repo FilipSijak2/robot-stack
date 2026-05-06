@@ -7,7 +7,7 @@ set -euo pipefail
 # Environment:
 #   MAP_ROOT (container path, default /srv/maps)
 #   MAP_ROOT_HOST (host path, default <repo>/srv/maps)
-#   MAP_CONFIG_FILE (default <repo>/config/map.yaml)
+#   MAP_CONFIG_FILE (default <repo>/config/containers/map.yaml)
 #   RESTART_NAV=1 (auto restart nav_cont via docker compose or container name)
 #   NAV_SERVICE=nav_cont (container/service name)
 
@@ -22,7 +22,7 @@ fi
 
 : "${MAP_ROOT:=/srv/maps}"
 : "${MAP_ROOT_HOST:=$REPO_ROOT/srv/maps}"
-: "${MAP_CONFIG_FILE:=$REPO_ROOT/config/map.yaml}"
+: "${MAP_CONFIG_FILE:=$REPO_ROOT/config/containers/map.yaml}"
 : "${RESTART_NAV:=1}"
 : "${NAV_SERVICE:=nav_cont}"
 MAP_ROOT_FS="$MAP_ROOT"
@@ -73,14 +73,14 @@ resolve_yaml(){
 }
 
 YAML_FILE=$(resolve_yaml "$TARGET_INPUT") || { echo "[select_map] Cannot resolve map yaml for '$TARGET_INPUT'" >&2; exit 1; }
-SESSION_DIR=$(dirname $(dirname "$YAML_FILE"))
+SESSION_DIR=$(dirname "$(dirname "$YAML_FILE")")
 SESSION_NAME=$(basename "$SESSION_DIR")
 
 # Write selected map into config map.yaml (no symlink usage)
 MAP_DIR_HOST=$(dirname "$YAML_FILE")
 MAP_DIR_CONTAINER="$MAP_DIR_HOST"
 if [[ "$MAP_DIR_HOST" == "$MAP_ROOT_FS"* ]]; then
-  MAP_DIR_CONTAINER="$MAP_ROOT${MAP_DIR_HOST#$MAP_ROOT_FS}"
+  MAP_DIR_CONTAINER="$MAP_ROOT${MAP_DIR_HOST#"$MAP_ROOT_FS"}"
 fi
 
 IMAGE_LINE=$(grep -E '^image:' "$YAML_FILE" | head -n1 | cut -d':' -f2- | xargs || true)

@@ -2,5 +2,5 @@
 # Lines starting with # are comments.
 # Example: .env
 .env
-config/static_tf.yaml
+config/containers/static_tf.yaml
 scripts/apply-protected-files.sh

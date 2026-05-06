@@ -64,7 +64,7 @@ get_env() {
   local key="$1"
   local line
   line=$(grep -E "^${key}=" "$ENV_FILE" | tail -n 1 || true)
-  echo "${line#${key}=}"
+  echo "${line#"${key}"=}"
 }
 
 REGISTRY_HOST=$(get_env REGISTRY_HOST)
