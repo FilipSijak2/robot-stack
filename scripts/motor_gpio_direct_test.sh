@@ -312,6 +312,9 @@ finally:
     time.sleep(0.15)
     for p in (pwm_ain1, pwm_ain2, pwm_bin1, pwm_bin2):
         p.stop()
+    # Drop PWM objects before cleanup so __del__ doesn't run at interpreter
+    # shutdown with partially torn-down module globals.
+    del pwm_ain1, pwm_ain2, pwm_bin1, pwm_bin2
     GPIO.cleanup()
 
 print('[OK] Direct GPIO pulse test finished.')
