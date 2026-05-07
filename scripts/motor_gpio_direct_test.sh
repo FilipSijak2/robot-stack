@@ -22,7 +22,7 @@ BRIDGE_CONTAINER="${BRIDGE_CONTAINER:-robot_bridge_cont}"
 MOTOR="both"            # left | right | both
 DIRECTION="forward"     # forward | reverse
 DUTY="30"               # 0..100
-SECONDS="1.2"           # pulse duration
+DURATION_S="1.2"        # pulse duration
 PWM_HZ="1000"           # software PWM frequency
 KEEP_BRIDGE_STOPPED=0
 CONFIRMED=0
@@ -64,7 +64,7 @@ while [ $# -gt 0 ]; do
       shift 2
       ;;
     --seconds)
-      SECONDS="${2:-}"
+      DURATION_S="${2:-}"
       shift 2
       ;;
     --pwm-hz)
@@ -168,7 +168,7 @@ cleanup() {
 trap cleanup EXIT
 
 log "Test parameters:"
-printf '  motor=%s direction=%s duty=%s%% seconds=%s pwm_hz=%s\n' "$MOTOR" "$DIRECTION" "$DUTY" "$SECONDS" "$PWM_HZ"
+printf '  motor=%s direction=%s duty=%s%% seconds=%s pwm_hz=%s\n' "$MOTOR" "$DIRECTION" "$DUTY" "$DURATION_S" "$PWM_HZ"
 printf '  gpiochip_device=%s gpiochip_index=%s\n' "$BRIDGE_GPIOMEM_DEVICE" "$RPI_LGPIO_CHIP"
 printf '  pins AIN1=%s AIN2=%s BIN1=%s BIN2=%s SLEEP=%s\n' "$DRV_AIN1_PIN" "$DRV_AIN2_PIN" "$DRV_BIN1_PIN" "$DRV_BIN2_PIN" "$DRV_SLEEP_PIN"
 
@@ -192,7 +192,7 @@ docker run --rm \
   -e TEST_MOTOR="$MOTOR" \
   -e TEST_DIRECTION="$DIRECTION" \
   -e TEST_DUTY="$DUTY" \
-  -e TEST_SECONDS="$SECONDS" \
+  -e TEST_SECONDS="$DURATION_S" \
   -e TEST_PWM_HZ="$PWM_HZ" \
   --entrypoint /bin/bash \
   "$BRIDGE_IMAGE" \
@@ -200,10 +200,37 @@ docker run --rm \
 import os
 import time
 import sys
+from pathlib import Path
 
 try:
     if 'RPI_LGPIO_REVISION' not in os.environ:
-        os.environ['RPI_LGPIO_REVISION'] = '0'
+        revision_paths = (
+            Path('/proc/device-tree/system/linux,revision'),
+            Path('/sys/firmware/devicetree/base/system/linux,revision'),
+        )
+        for revision_path in revision_paths:
+            try:
+                revision_raw = revision_path.read_bytes()
+            except OSError:
+                continue
+            if len(revision_raw) >= 4:
+                revision_value = int.from_bytes(revision_raw[:4], byteorder='big', signed=False)
+                if revision_value > 0:
+                    os.environ['RPI_LGPIO_REVISION'] = f'{revision_value:x}'
+                    break
+    if 'RPI_LGPIO_REVISION' not in os.environ:
+        try:
+            for cpuinfo_line in Path('/proc/cpuinfo').read_text(encoding='utf-8', errors='ignore').splitlines():
+                if not cpuinfo_line.lower().startswith('revision'):
+                    continue
+                _, revision_text = cpuinfo_line.split(':', 1)
+                revision_text = revision_text.strip().lower().lstrip('0x')
+                if revision_text:
+                    int(revision_text, 16)
+                    os.environ['RPI_LGPIO_REVISION'] = revision_text
+                    break
+        except OSError:
+            pass
     import RPi.GPIO as GPIO
 except Exception as exc:
     print(f'[ERROR] Failed to import RPi.GPIO: {exc}', file=sys.stderr)
