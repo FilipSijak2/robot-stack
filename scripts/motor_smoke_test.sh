@@ -97,7 +97,14 @@ fi
 ok "Containers are running: bridge=$BRIDGE_CONTAINER nav=$NAV_CONTAINER"
 
 log "Bridge runtime flags:"
-docker exec -i "$BRIDGE_CONTAINER" env | grep -E 'BRIDGE_MODE|ENCODERS_ENABLED|OPEN_LOOP_ODOM_FROM_CMD|DRV_|I2C_|WHEEL_|RPI_LGPIO_CHIP|LEFT_MUX_CHANNEL|RIGHT_MUX_CHANNEL' || true
+BRIDGE_ENV_DUMP="$(docker exec -i "$BRIDGE_CONTAINER" env | grep -E 'BRIDGE_MODE|ENCODERS_ENABLED|OPEN_LOOP_ODOM_FROM_CMD|DRV_|I2C_|WHEEL_|RPI_LGPIO_CHIP|LEFT_MUX_CHANNEL|RIGHT_MUX_CHANNEL' || true)"
+printf '%s\n' "$BRIDGE_ENV_DUMP"
+if printf '%s\n' "$BRIDGE_ENV_DUMP" | grep -q '^OPEN_LOOP_ODOM_FROM_CMD=1$'; then
+  warn "OPEN_LOOP_ODOM_FROM_CMD=1 -> odometry can move from cmd_vel without real wheel movement."
+fi
+if printf '%s\n' "$BRIDGE_ENV_DUMP" | grep -q '^ENCODERS_ENABLED=0$'; then
+  warn "ENCODERS_ENABLED=0 -> no real encoder feedback is used by bridge."
+fi
 
 log "Initial /robot_status (single sample):"
 docker exec -i "$NAV_CONTAINER" bash -lc "source /opt/ros/humble/setup.bash && timeout 5s ros2 topic echo /robot_status --once" || warn "Could not read /robot_status."
