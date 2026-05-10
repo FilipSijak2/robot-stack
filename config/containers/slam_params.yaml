@@ -18,6 +18,7 @@ slam_toolbox:
     mode: mapping
 
     # Sensor parameters
+    minimum_laser_range: 0.2
     max_laser_range: 10.0
     minimum_time_interval: 0.2 # Bez enkodera, češće procesiranje smanjuje drift rf2o
     transform_timeout: 0.2

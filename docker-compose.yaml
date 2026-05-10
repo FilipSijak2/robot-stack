@@ -5,6 +5,7 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/nav:${NAV_TAG}
     container_name: nav_cont
     network_mode: host
+    cpu_shares: 2048  # DWB controller 20Hz + AMCL trebaju brz odgovor
     env_file:
       - ./config/containers/nav_cont.env
     environment:
@@ -51,6 +52,7 @@
   laser_driver:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/laser_driver:${DRIVER_TAG}
     container_name: laser_driver_cont
+    cpu_shares: 1024  # LiDAR driver: čitanje podataka kritično za SLAM i Nav2
     env_file:
       - ./config/containers/laser_driver.env
     environment:
@@ -73,6 +75,7 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/slam:${SLAM_TAG}
     container_name: slam_cont
     network_mode: host
+    cpu_shares: 1024  # Loop closure može spikati, ali ne smije gladovati
     depends_on:
       - database_cont
     volumes:
@@ -102,6 +105,7 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/sensor_fusion:${SENSOR_FUSION_TAG}
     container_name: sensor_fusion_cont
     network_mode: host
+    cpu_shares: 2048  # EKF 30Hz — kašnjenje degradira lokalizaciju
     env_file:
       - ./config/containers/sensor_fusion_cont.env
     environment:
@@ -126,6 +130,7 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/bridge:${BRIDGE_TAG}
     container_name: robot_bridge_cont
     network_mode: host
+    cpu_shares: 4096  # Najviši prioritet: motor control 50Hz mora biti pouzdan
     env_file:
       - ./config/containers/robot_bridge.env
       - ./config/containers/bridge_rpi_direct.env
@@ -155,6 +160,7 @@
   ai_kit_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/ai_kit:${AI_KIT_TAG}
     container_name: ai_kit_cont
+    cpu_shares: 512   # Hailo NPU radi inferenciju hardverski, CPU samo prenosi framove
     env_file:
       - ./config/containers/ai_kit_cont.env
     environment:
@@ -195,6 +201,7 @@
   rosbridge_websocket:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/rosbridge:${ROSBRIDGE_TAG}
     container_name: rosbridge_websocket_cont
+    cpu_shares: 256   # Vizualizacija: ne smije uzimati CPU od navstacka
     env_file:
       - ./config/containers/rosbridge_websocket.env
     environment:
@@ -211,6 +218,7 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/foxglove_bridge:${FOXGLOVE_BRIDGE_TAG}
     container_name: foxglove_bridge_cont
     network_mode: host
+    cpu_shares: 256   # Vizualizacija: najniži prioritet od kritičnih servisa
     env_file:
       - ./config/containers/foxglove_bridge.env
     environment:
@@ -244,6 +252,7 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/realsense:${REALSENSE_TAG}
     container_name: realsense_cont
     network_mode: host
+    cpu_shares: 512   # USB DMA uglavnom kernelski, ali encoding pointclouda treba CPU
     privileged: true
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
