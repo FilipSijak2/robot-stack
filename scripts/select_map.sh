@@ -100,11 +100,15 @@ echo "[select_map] Selected map -> $YAML_FILE (session $SESSION_NAME)"
 echo "[select_map] Wrote config map -> $MAP_CONFIG_FILE"
 
 if [ "$RESTART_NAV" = "1" ]; then
-  echo "[select_map] Restarting nav container ($NAV_SERVICE) to pick up map..."
-  if docker compose ps -q "$NAV_SERVICE" >/dev/null 2>&1; then
-    docker compose restart "$NAV_SERVICE"
+  # Check whether the container is actually running before attempting a restart.
+  # 'docker compose ps -q' returns exit 0 even for stopped services (empty output),
+  # so we inspect the running state explicitly to avoid crashing when stack is down.
+  NAV_RUNNING=$(docker compose ps -q "$NAV_SERVICE" 2>/dev/null | head -n1)
+  if [ -z "$NAV_RUNNING" ]; then
+    echo "[select_map] $NAV_SERVICE is not running — map will be picked up on next stack start."
   else
-    docker restart "$NAV_SERVICE" || true
+    echo "[select_map] Restarting nav container ($NAV_SERVICE) to pick up map..."
+    docker compose restart "$NAV_SERVICE" || docker restart "$NAV_SERVICE" || true
   fi
   echo "[select_map] Waiting 5s..."; sleep 5
   # Show loaded map param if possible
