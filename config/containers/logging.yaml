@@ -56,11 +56,6 @@ loggers:
     handlers: [console, file]
     propagate: false
 
-  micro_ros_agent:
-    level: DEBUG
-    handlers: [console, file, error_file]
-    propagate: false
-
 root:
   level: INFO
   handlers: [console, file]
