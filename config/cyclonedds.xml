@@ -28,7 +28,7 @@
 
         <Discovery>
             <ParticipantIndex>auto</ParticipantIndex>
-            <MaxAutoParticipantIndex>30</MaxAutoParticipantIndex>
+            <MaxAutoParticipantIndex>60</MaxAutoParticipantIndex>
             <SPDPMulticastAddress>239.255.0.1</SPDPMulticastAddress>
             <SPDPInterval>30s</SPDPInterval>
             <DefaultMulticastAddress>auto</DefaultMulticastAddress>

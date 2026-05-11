@@ -115,6 +115,24 @@ awk -v img="$IMAGE_LINE" 'BEGIN{done=0} /^image:/ {print "image: "img; done=1; n
 echo "[select_map] Selected map -> $YAML_FILE (session $SESSION_NAME)"
 echo "[select_map] Wrote config map -> $MAP_CONFIG_FILE"
 
+# Update slam_params.yaml map_file_name so localization_slam_toolbox_node loads the correct map.
+# slam_toolbox localization needs the serialized pose graph (.posegraph + .data), not the occupancy grid.
+# The serialized files are saved by run_mapping.sh alongside the occupancy grid (same base name, no extension).
+SLAM_PARAMS_FILE="${REPO_ROOT}/config/containers/slam_params.yaml"
+POSEGRAPH_BASE="${MAP_DIR_CONTAINER}/map"
+if [ -f "${MAP_DIR_HOST}/map.posegraph" ]; then
+	if [ -f "$SLAM_PARAMS_FILE" ]; then
+		# Replace map_file_name value with container-side path (no extension, slam_toolbox appends it)
+		sed -i "s|map_file_name:.*|map_file_name: \"${POSEGRAPH_BASE}\"|" "$SLAM_PARAMS_FILE"
+		echo "[select_map] Updated slam_params.yaml map_file_name -> ${POSEGRAPH_BASE}"
+	else
+		echo "[select_map] WARNING: slam_params.yaml not found at $SLAM_PARAMS_FILE – slam localization map not updated" >&2
+	fi
+else
+	echo "[select_map] WARNING: No .posegraph file found at ${MAP_DIR_HOST}/map.posegraph" >&2
+	echo "[select_map]   Run a mapping session first (run_mapping.sh) to generate the pose graph." >&2
+fi
+
 if [ "$RESTART_NAV" = "1" ]; then
 	# Check whether the container is actually running before attempting a restart.
 	# 'docker compose ps -q' returns exit 0 even for stopped services (empty output),
@@ -125,6 +143,14 @@ if [ "$RESTART_NAV" = "1" ]; then
 	else
 		echo "[select_map] Restarting nav container ($NAV_SERVICE) to pick up map..."
 		docker compose restart "$NAV_SERVICE" || docker restart "$NAV_SERVICE" || true
+	fi
+	# Restart slam_cont so localization_slam_toolbox_node loads the new pose graph.
+	SLAM_RUNNING=$(docker compose ps -q slam_cont 2>/dev/null | head -n1)
+	if [ -z "$SLAM_RUNNING" ]; then
+		echo "[select_map] slam_cont is not running — updated map_file_name will be picked up on next stack start."
+	else
+		echo "[select_map] Restarting slam_cont to load new pose graph..."
+		docker compose restart slam_cont || docker restart slam_cont || true
 	fi
 	echo "[select_map] Waiting 5s..."
 	sleep 5
