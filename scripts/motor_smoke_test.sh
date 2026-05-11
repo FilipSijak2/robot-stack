@@ -18,7 +18,7 @@ DURATION_S="2"
 PUB_RATE_HZ="20"
 
 usage() {
-  cat <<'EOF'
+	cat <<'EOF'
 Usage: bash scripts/motor_smoke_test.sh [options]
 
 Options:
@@ -38,60 +38,60 @@ warn() { printf '[WARN] %s\n' "$*" >&2; }
 err() { printf '[ERROR] %s\n' "$*" >&2; }
 
 while [ $# -gt 0 ]; do
-  case "$1" in
-    --bridge)
-      BRIDGE_CONTAINER="${2:-}"
-      shift 2
-      ;;
-    --nav)
-      NAV_CONTAINER="${2:-}"
-      shift 2
-      ;;
-    --linear)
-      LINEAR_SPEED="${2:-}"
-      shift 2
-      ;;
-    --angular)
-      ANGULAR_SPEED="${2:-}"
-      shift 2
-      ;;
-    --duration)
-      DURATION_S="${2:-}"
-      shift 2
-      ;;
-    --rate)
-      PUB_RATE_HZ="${2:-}"
-      shift 2
-      ;;
-    -h|--help)
-      usage
-      exit 0
-      ;;
-    *)
-      err "Unknown argument: $1"
-      usage >&2
-      exit 2
-      ;;
-  esac
+	case "$1" in
+	--bridge)
+		BRIDGE_CONTAINER="${2:-}"
+		shift 2
+		;;
+	--nav)
+		NAV_CONTAINER="${2:-}"
+		shift 2
+		;;
+	--linear)
+		LINEAR_SPEED="${2:-}"
+		shift 2
+		;;
+	--angular)
+		ANGULAR_SPEED="${2:-}"
+		shift 2
+		;;
+	--duration)
+		DURATION_S="${2:-}"
+		shift 2
+		;;
+	--rate)
+		PUB_RATE_HZ="${2:-}"
+		shift 2
+		;;
+	-h | --help)
+		usage
+		exit 0
+		;;
+	*)
+		err "Unknown argument: $1"
+		usage >&2
+		exit 2
+		;;
+	esac
 done
 
 if ! command -v docker >/dev/null 2>&1; then
-  err "docker command not found."
-  exit 2
+	err "docker command not found."
+	exit 2
 fi
 
 is_running() {
-  local name="$1"
-  docker inspect -f '{{.State.Running}}' "$name" 2>/dev/null | grep -q '^true$'
+	local name="$1"
+	docker inspect -f '{{.State.Running}}' "$name" 2>/dev/null | grep -q '^true$'
 }
 
 if ! is_running "$BRIDGE_CONTAINER"; then
-  err "Bridge container is not running: $BRIDGE_CONTAINER"
-  exit 2
+	err "Bridge container is not running: $BRIDGE_CONTAINER"
+	exit 2
 fi
 if ! is_running "$NAV_CONTAINER"; then
-  err "Nav container is not running: $NAV_CONTAINER"
-  exit 2
+	err "Nav container is not running: $NAV_CONTAINER"
+	exit 2
 fi
 
 ok "Containers are running: bridge=$BRIDGE_CONTAINER nav=$NAV_CONTAINER"
@@ -100,10 +100,10 @@ log "Bridge runtime flags:"
 BRIDGE_ENV_DUMP="$(docker exec -i "$BRIDGE_CONTAINER" env | grep -E 'BRIDGE_MODE|ENCODERS_ENABLED|OPEN_LOOP_ODOM_FROM_CMD|DRV_|I2C_|WHEEL_|RPI_LGPIO_CHIP|LEFT_MUX_CHANNEL|RIGHT_MUX_CHANNEL' || true)"
 printf '%s\n' "$BRIDGE_ENV_DUMP"
 if printf '%s\n' "$BRIDGE_ENV_DUMP" | grep -q '^OPEN_LOOP_ODOM_FROM_CMD=1$'; then
-  warn "OPEN_LOOP_ODOM_FROM_CMD=1 -> odometry can move from cmd_vel without real wheel movement."
+	warn "OPEN_LOOP_ODOM_FROM_CMD=1 -> odometry can move from cmd_vel without real wheel movement."
 fi
 if printf '%s\n' "$BRIDGE_ENV_DUMP" | grep -q '^ENCODERS_ENABLED=0$'; then
-  warn "ENCODERS_ENABLED=0 -> no real encoder feedback is used by bridge."
+	warn "ENCODERS_ENABLED=0 -> no real encoder feedback is used by bridge."
 fi
 
 log "Initial /robot_status (single sample):"

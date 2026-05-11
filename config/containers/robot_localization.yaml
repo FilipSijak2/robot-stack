@@ -24,22 +24,22 @@ ekf_filter_node:
     # Odometry configuration (laser scan matching via rf2o - zamjena za wheel enkodere)
     odom0: /odom_rf2o
     odom0_config: [
-        true,
-        true,
-        false, # x, y, z positions
-        false,
-        false,
-        true, # roll, pitch, yaw orientations
-        true,
-        true,
-        false, # x, y, z velocities
-        false,
-        false,
-        true, # roll, pitch, yaw velocities
-        false,
-        false,
-        false,
-      ] # x, y, z accelerations
+      true,
+      true,
+      false,  # x, y, z positions
+      false,
+      false,
+      true,  # roll, pitch, yaw orientations
+      true,
+      true,
+      false,  # x, y, z velocities
+      false,
+      false,
+      true,  # roll, pitch, yaw velocities
+      false,
+      false,
+      false,
+    ]  # x, y, z accelerations
     odom0_queue_size: 10
     odom0_nodelay: false
     odom0_differential: false
@@ -49,22 +49,22 @@ ekf_filter_node:
     # Akceleracije isključene: MEMS akcelerometar D455 ima previsok šum za EKF fusiju.
     imu0: /imu/data
     imu0_config: [
-        false,
-        false,
-        false, # x, y, z positions
-        true,
-        true,
-        true, # roll, pitch, yaw orientations
-        false,
-        false,
-        false, # x, y, z velocities
-        true,
-        true,
-        true, # roll, pitch, yaw velocities
-        false,
-        false,
-        false,
-      ] # x, y, z accelerations - ISKLJUCENO (preveliki sum)
+      false,
+      false,
+      false,  # x, y, z positions
+      true,
+      true,
+      true,  # roll, pitch, yaw orientations
+      false,
+      false,
+      false,  # x, y, z velocities
+      true,
+      true,
+      true,  # roll, pitch, yaw velocities
+      false,
+      false,
+      false,
+    ]  # x, y, z accelerations - ISKLJUCENO (preveliki sum)
     imu0_queue_size: 10
     imu0_nodelay: false
     imu0_differential: false

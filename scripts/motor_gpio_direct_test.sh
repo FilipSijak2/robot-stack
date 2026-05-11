@@ -19,16 +19,16 @@ ENV_FILE="$REPO_ROOT/.env"
 BRIDGE_ENV_FILE="$REPO_ROOT/config/containers/bridge_rpi_direct.env"
 
 BRIDGE_CONTAINER="${BRIDGE_CONTAINER:-robot_bridge_cont}"
-MOTOR="both"            # left | right | both
-DIRECTION="forward"     # forward | reverse
-DUTY="30"               # 0..100
-DURATION_S="1.2"        # pulse duration
-PWM_HZ="1000"           # software PWM frequency
+MOTOR="both"        # left | right | both
+DIRECTION="forward" # forward | reverse
+DUTY="30"           # 0..100
+DURATION_S="1.2"    # pulse duration
+PWM_HZ="1000"       # software PWM frequency
 KEEP_BRIDGE_STOPPED=0
 CONFIRMED=0
 
 usage() {
-  cat <<'EOF'
+	cat <<'EOF'
 Usage: bash scripts/motor_gpio_direct_test.sh [options] --yes
 
 Options:
@@ -50,90 +50,90 @@ warn() { printf '[WARN] %s\n' "$*" >&2; }
 err() { printf '[ERROR] %s\n' "$*" >&2; }
 
 while [ $# -gt 0 ]; do
-  case "$1" in
-    --motor)
-      MOTOR="${2:-}"
-      shift 2
-      ;;
-    --direction)
-      DIRECTION="${2:-}"
-      shift 2
-      ;;
-    --duty)
-      DUTY="${2:-}"
-      shift 2
-      ;;
-    --seconds)
-      DURATION_S="${2:-}"
-      shift 2
-      ;;
-    --pwm-hz)
-      PWM_HZ="${2:-}"
-      shift 2
-      ;;
-    --bridge-container)
-      BRIDGE_CONTAINER="${2:-}"
-      shift 2
-      ;;
-    --keep-bridge-stopped)
-      KEEP_BRIDGE_STOPPED=1
-      shift
-      ;;
-    --yes)
-      CONFIRMED=1
-      shift
-      ;;
-    -h|--help)
-      usage
-      exit 0
-      ;;
-    *)
-      err "Unknown argument: $1"
-      usage >&2
-      exit 2
-      ;;
-  esac
+	case "$1" in
+	--motor)
+		MOTOR="${2:-}"
+		shift 2
+		;;
+	--direction)
+		DIRECTION="${2:-}"
+		shift 2
+		;;
+	--duty)
+		DUTY="${2:-}"
+		shift 2
+		;;
+	--seconds)
+		DURATION_S="${2:-}"
+		shift 2
+		;;
+	--pwm-hz)
+		PWM_HZ="${2:-}"
+		shift 2
+		;;
+	--bridge-container)
+		BRIDGE_CONTAINER="${2:-}"
+		shift 2
+		;;
+	--keep-bridge-stopped)
+		KEEP_BRIDGE_STOPPED=1
+		shift
+		;;
+	--yes)
+		CONFIRMED=1
+		shift
+		;;
+	-h | --help)
+		usage
+		exit 0
+		;;
+	*)
+		err "Unknown argument: $1"
+		usage >&2
+		exit 2
+		;;
+	esac
 done
 
 if [ "$CONFIRMED" -ne 1 ]; then
-  err "Refusing to run without --yes safety confirmation."
-  warn "Lift wheels off ground before test."
-  exit 2
+	err "Refusing to run without --yes safety confirmation."
+	warn "Lift wheels off ground before test."
+	exit 2
 fi
 
 case "$MOTOR" in
-  left|right|both) ;;
-  *)
-    err "--motor must be one of: left, right, both"
-    exit 2
-    ;;
+left | right | both) ;;
+*)
+	err "--motor must be one of: left, right, both"
+	exit 2
+	;;
 esac
 
 case "$DIRECTION" in
-  forward|reverse) ;;
-  *)
-    err "--direction must be one of: forward, reverse"
-    exit 2
-    ;;
+forward | reverse) ;;
+*)
+	err "--direction must be one of: forward, reverse"
+	exit 2
+	;;
 esac
 
 if ! command -v docker >/dev/null 2>&1; then
-  err "docker command not found."
-  exit 2
+	err "docker command not found."
+	exit 2
 fi
 
 if [ -f "$ENV_FILE" ]; then
-  set -a
-  # shellcheck disable=SC1090
-  . "$ENV_FILE"
-  set +a
+	set -a
+	# shellcheck disable=SC1090
+	. "$ENV_FILE"
+	set +a
 fi
 
 if [ -f "$BRIDGE_ENV_FILE" ]; then
-  set -a
-  # shellcheck disable=SC1090
-  . "$BRIDGE_ENV_FILE"
-  set +a
+	set -a
+	# shellcheck disable=SC1090
+	. "$BRIDGE_ENV_FILE"
+	set +a
 fi
 
 : "${RPI_LGPIO_CHIP:=4}"
@@ -145,13 +145,13 @@ fi
 : "${BRIDGE_GPIOMEM_DEVICE:=/dev/gpiochip4}"
 
 if [ ! -e "$BRIDGE_GPIOMEM_DEVICE" ]; then
-  err "GPIO device not found on host: $BRIDGE_GPIOMEM_DEVICE"
-  exit 2
+	err "GPIO device not found on host: $BRIDGE_GPIOMEM_DEVICE"
+	exit 2
 fi
 
 if ! docker inspect "$BRIDGE_CONTAINER" >/dev/null 2>&1; then
-  err "Bridge container not found: $BRIDGE_CONTAINER"
-  exit 2
+	err "Bridge container not found: $BRIDGE_CONTAINER"
+	exit 2
 fi
 
 BRIDGE_IMAGE="$(docker inspect -f '{{.Config.Image}}' "$BRIDGE_CONTAINER")"
@@ -159,11 +159,11 @@ BRIDGE_RUNNING="$(docker inspect -f '{{.State.Running}}' "$BRIDGE_CONTAINER" 2>/
 RESTART_ON_EXIT=0
 
 cleanup() {
-  if [ "$RESTART_ON_EXIT" -eq 1 ] && [ "$KEEP_BRIDGE_STOPPED" -eq 0 ]; then
-    log "Restarting bridge container: $BRIDGE_CONTAINER"
-    docker start "$BRIDGE_CONTAINER" >/dev/null
-    ok "Bridge restarted."
-  fi
+	if [ "$RESTART_ON_EXIT" -eq 1 ] && [ "$KEEP_BRIDGE_STOPPED" -eq 0 ]; then
+		log "Restarting bridge container: $BRIDGE_CONTAINER"
+		docker start "$BRIDGE_CONTAINER" >/dev/null
+		ok "Bridge restarted."
+	fi
 }
 trap cleanup EXIT
 
@@ -173,30 +173,30 @@ printf '  gpiochip_device=%s gpiochip_index=%s\n' "$BRIDGE_GPIOMEM_DEVICE" "$RPI
 printf '  pins AIN1=%s AIN2=%s BIN1=%s BIN2=%s SLEEP=%s\n' "$DRV_AIN1_PIN" "$DRV_AIN2_PIN" "$DRV_BIN1_PIN" "$DRV_BIN2_PIN" "$DRV_SLEEP_PIN"
 
 if [ "$BRIDGE_RUNNING" = "true" ]; then
-  log "Stopping bridge container to avoid GPIO contention: $BRIDGE_CONTAINER"
-  docker stop "$BRIDGE_CONTAINER" >/dev/null
-  RESTART_ON_EXIT=1
+	log "Stopping bridge container to avoid GPIO contention: $BRIDGE_CONTAINER"
+	docker stop "$BRIDGE_CONTAINER" >/dev/null
+	RESTART_ON_EXIT=1
 fi
 
 log "Running one-off direct GPIO test in bridge image: $BRIDGE_IMAGE"
 docker run --rm \
-  --privileged \
-  --network host \
-  --device "${BRIDGE_GPIOMEM_DEVICE}:${BRIDGE_GPIOMEM_DEVICE}" \
-  -e RPI_LGPIO_CHIP="$RPI_LGPIO_CHIP" \
-  -e DRV_AIN1_PIN="$DRV_AIN1_PIN" \
-  -e DRV_AIN2_PIN="$DRV_AIN2_PIN" \
-  -e DRV_BIN1_PIN="$DRV_BIN1_PIN" \
-  -e DRV_BIN2_PIN="$DRV_BIN2_PIN" \
-  -e DRV_SLEEP_PIN="$DRV_SLEEP_PIN" \
-  -e TEST_MOTOR="$MOTOR" \
-  -e TEST_DIRECTION="$DIRECTION" \
-  -e TEST_DUTY="$DUTY" \
-  -e TEST_SECONDS="$DURATION_S" \
-  -e TEST_PWM_HZ="$PWM_HZ" \
-  --entrypoint /bin/bash \
-  "$BRIDGE_IMAGE" \
-  -lc "python3 - <<'PY'
+	--privileged \
+	--network host \
+	--device "${BRIDGE_GPIOMEM_DEVICE}:${BRIDGE_GPIOMEM_DEVICE}" \
+	-e RPI_LGPIO_CHIP="$RPI_LGPIO_CHIP" \
+	-e DRV_AIN1_PIN="$DRV_AIN1_PIN" \
+	-e DRV_AIN2_PIN="$DRV_AIN2_PIN" \
+	-e DRV_BIN1_PIN="$DRV_BIN1_PIN" \
+	-e DRV_BIN2_PIN="$DRV_BIN2_PIN" \
+	-e DRV_SLEEP_PIN="$DRV_SLEEP_PIN" \
+	-e TEST_MOTOR="$MOTOR" \
+	-e TEST_DIRECTION="$DIRECTION" \
+	-e TEST_DUTY="$DUTY" \
+	-e TEST_SECONDS="$DURATION_S" \
+	-e TEST_PWM_HZ="$PWM_HZ" \
+	--entrypoint /bin/bash \
+	"$BRIDGE_IMAGE" \
+	-lc "python3 - <<'PY'
 import os
 import time
 import sys
@@ -323,5 +323,5 @@ PY"
 ok "Direct GPIO motor test completed."
 
 if [ "$KEEP_BRIDGE_STOPPED" -eq 1 ] && [ "$RESTART_ON_EXIT" -eq 1 ]; then
-  warn "Bridge container left stopped by request (--keep-bridge-stopped)."
+	warn "Bridge container left stopped by request (--keep-bridge-stopped)."
 fi

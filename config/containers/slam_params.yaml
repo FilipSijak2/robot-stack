@@ -13,21 +13,21 @@ slam_toolbox:
     scan_topic: /scan
     # Periodic publishing of OccupancyGrid (slam_toolbox params)
     periodic_publish: true
-    periodic_publish_frequency: 1.0 # Hz
+    periodic_publish_frequency: 1.0  # Hz
     # Provide an initial mode (mapping|localization)
     mode: mapping
 
     # Sensor parameters
     minimum_laser_range: 0.2
     max_laser_range: 10.0
-    minimum_time_interval: 0.2 # Bez enkodera, češće procesiranje smanjuje drift rf2o
+    minimum_time_interval: 0.2  # Bez enkodera, češće procesiranje smanjuje drift rf2o
     transform_timeout: 0.2
     tf_buffer_duration: 30.0
 
     # Performance optimization
     stack_size_to_use: 40000000
     minimum_travel_distance: 0.1
-    minimum_travel_heading: 0.17 # ~10 degrees
+    minimum_travel_heading: 0.17  # ~10 degrees
 
     # Loop closure parameters
     # Manji search radius i veći chain size = rjeđe ali pouzdanije loop closures,
@@ -45,8 +45,8 @@ slam_toolbox:
     correlation_search_space_smear_deviation: 0.1
 
     # Scan matcher parameters
-    coarse_search_angle_offset: 0.349 # 20 degrees
-    coarse_angle_resolution: 0.0349 # 2 degrees
+    coarse_search_angle_offset: 0.349  # 20 degrees
+    coarse_angle_resolution: 0.0349  # 2 degrees
     minimum_angle_penalty: 0.9
     minimum_distance_penalty: 0.5
     use_response_expansion: true
