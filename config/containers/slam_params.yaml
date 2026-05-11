@@ -13,27 +13,26 @@ slam_toolbox:
     scan_topic: /scan
     # Periodic publishing of OccupancyGrid (slam_toolbox params)
     periodic_publish: true
-    periodic_publish_frequency: 1.0  # Hz
-    # Provide an initial mode (mapping|localization)
-    mode: mapping
+    periodic_publish_frequency: 1.0 # Hz
+    # Localization mode: track pose on existing map; no map updates, no loop closures.
+    # Mapping is done separately via run_mapping.sh which starts its own slam_toolbox instance.
+    mode: localization
 
     # Sensor parameters
     minimum_laser_range: 0.2
     max_laser_range: 10.0
-    minimum_time_interval: 0.2  # Bez enkodera, češće procesiranje smanjuje drift rf2o
+    minimum_time_interval: 0.2 # Bez enkodera, češće procesiranje smanjuje drift rf2o
     transform_timeout: 0.2
     tf_buffer_duration: 30.0
 
     # Performance optimization
     stack_size_to_use: 40000000
     minimum_travel_distance: 0.1
-    minimum_travel_heading: 0.17  # ~10 degrees
+    minimum_travel_heading: 0.17 # ~10 degrees
 
-    # Loop closure parameters
-    # Manji search radius i veći chain size = rjeđe ali pouzdanije loop closures,
-    # i manji CPU spike na RPi 5.
+    # Loop closure parameters (disabled in localization mode)
     loop_search_maximum_distance: 2.0
-    do_loop_closing: true
+    do_loop_closing: false
     loop_match_minimum_chain_size: 15
     loop_match_maximum_variance_coarse: 3.0
     loop_match_minimum_response_coarse: 0.35
@@ -45,8 +44,8 @@ slam_toolbox:
     correlation_search_space_smear_deviation: 0.1
 
     # Scan matcher parameters
-    coarse_search_angle_offset: 0.349  # 20 degrees
-    coarse_angle_resolution: 0.0349  # 2 degrees
+    coarse_search_angle_offset: 0.349 # 20 degrees
+    coarse_angle_resolution: 0.0349 # 2 degrees
     minimum_angle_penalty: 0.9
     minimum_distance_penalty: 0.5
     use_response_expansion: true
