@@ -85,7 +85,11 @@ YAML_FILE=$(resolve_yaml "$TARGET_INPUT") || {
 	echo "[select_map] Cannot resolve map yaml for '$TARGET_INPUT'" >&2
 	exit 1
 }
-SESSION_DIR=$(dirname "$(dirname "$YAML_FILE")")
+SESSION_DIR=$(dirname "$YAML_FILE")
+# If yaml is in a "final/" subdirectory, the session root is one level up
+if [ "$(basename "$SESSION_DIR")" = "final" ]; then
+	SESSION_DIR=$(dirname "$SESSION_DIR")
+fi
 SESSION_NAME=$(basename "$SESSION_DIR")
 
 # Write selected map into config map.yaml (no symlink usage)
