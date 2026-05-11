@@ -94,7 +94,7 @@
       RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}
       ROS_DOMAIN_ID: ${ROS_DOMAIN_ID}
     healthcheck:
-      test: ["CMD-SHELL", "pgrep -f slam_toolbox >/dev/null || exit 1"]
+      test: ["CMD-SHELL", "pgrep -f slam_manager.py >/dev/null || pgrep -f slam_toolbox >/dev/null || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
