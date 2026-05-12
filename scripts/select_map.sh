@@ -31,7 +31,9 @@ fi
 SLAM_CONT_ENV="$REPO_ROOT/config/containers/slam_cont.env"
 START_SLAM_TOOLBOX="0"
 if [ -f "$SLAM_CONT_ENV" ]; then
-	_val=$(grep -E '^START_SLAM_TOOLBOX=' "$SLAM_CONT_ENV" | tail -n1 | cut -d'=' -f2- | tr -d '[:space:]"'"'"')
+	_val=$(grep -E '^START_SLAM_TOOLBOX=' "$SLAM_CONT_ENV" | tail -n1 | cut -d'=' -f2-)
+	_val="${_val//[[:space:]]/}"
+	_val="${_val//\"/}"
 	[ -n "$_val" ] && START_SLAM_TOOLBOX="$_val"
 fi
 USE_SLAM_TOOLBOX_LOCALIZATION=0
