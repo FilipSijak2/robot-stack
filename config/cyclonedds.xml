@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Shared CycloneDDS configuration for the stack.
      Pin DDS traffic to wlan0 to avoid arbitrary interface selection across
-     wlan0 / tailscale0 / docker0 / bridge interfaces on the Pi host. -->
+     wlan0 / tailscale0 / docker0 / bridge interfaces on the Pi host.
+     Also include loopback so intra-host (same-machine) container traffic uses lo
+     instead of going through wlan0. -->
 <CycloneDDS xmlns="https://cdds.omg.org/schema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <Domain id="any">
         <General>
             <Interfaces>
+                <NetworkInterface name="lo" priority="default" multicast="default" />
                 <NetworkInterface name="wlan0" priority="default" multicast="default" />
             </Interfaces>
             <AllowMulticast>true</AllowMulticast>
@@ -30,7 +33,7 @@
             <ParticipantIndex>auto</ParticipantIndex>
             <MaxAutoParticipantIndex>60</MaxAutoParticipantIndex>
             <SPDPMulticastAddress>239.255.0.1</SPDPMulticastAddress>
-            <SPDPInterval>30s</SPDPInterval>
+            <SPDPInterval>1s</SPDPInterval>
             <DefaultMulticastAddress>auto</DefaultMulticastAddress>
             <Ports>
                 <Base>7400</Base>

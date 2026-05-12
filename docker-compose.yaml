@@ -83,6 +83,8 @@
       - ./config/containers/slam_params.yaml:/app/slam_params.yaml
       - ./srv:/srv
       - ./config/containers/static_tf.yaml:/app/static_tf.yaml
+      - /usr/bin/docker:/usr/bin/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - ./config/containers/slam_cont.env
     environment:
