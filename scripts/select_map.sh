@@ -25,6 +25,20 @@ fi
 : "${MAP_CONFIG_FILE:=$REPO_ROOT/config/containers/map.yaml}"
 : "${RESTART_NAV:=1}"
 : "${NAV_SERVICE:=nav_cont}"
+
+# Read START_SLAM_TOOLBOX from slam_cont.env to know whether slam_toolbox localization is active.
+# If 0 (AMCL mode), skip posegraph requirement and slam_cont restart.
+SLAM_CONT_ENV="$REPO_ROOT/config/containers/slam_cont.env"
+START_SLAM_TOOLBOX="0"
+if [ -f "$SLAM_CONT_ENV" ]; then
+	_val=$(grep -E '^START_SLAM_TOOLBOX=' "$SLAM_CONT_ENV" | tail -n1 | cut -d'=' -f2- | tr -d '[:space:]"'"'"')
+	[ -n "$_val" ] && START_SLAM_TOOLBOX="$_val"
+fi
+USE_SLAM_TOOLBOX_LOCALIZATION=0
+if [ "$START_SLAM_TOOLBOX" != "0" ] && [ "$START_SLAM_TOOLBOX" != "false" ] && [ "$START_SLAM_TOOLBOX" != "no" ] && [ "$START_SLAM_TOOLBOX" != "off" ]; then
+	USE_SLAM_TOOLBOX_LOCALIZATION=1
+fi
+
 MAP_ROOT_FS="$MAP_ROOT"
 if [ -n "$MAP_ROOT_HOST" ] && [ -d "$MAP_ROOT_HOST" ]; then
 	MAP_ROOT_FS="$MAP_ROOT_HOST"
@@ -120,17 +134,21 @@ echo "[select_map] Wrote config map -> $MAP_CONFIG_FILE"
 # The serialized files are saved by run_mapping.sh alongside the occupancy grid (same base name, no extension).
 SLAM_PARAMS_FILE="${REPO_ROOT}/config/containers/slam_params.yaml"
 POSEGRAPH_BASE="${MAP_DIR_CONTAINER}/map"
-if [ -f "${MAP_DIR_HOST}/map.posegraph" ]; then
-	if [ -f "$SLAM_PARAMS_FILE" ]; then
-		# Replace map_file_name value with container-side path (no extension, slam_toolbox appends it)
-		sed -i "s|map_file_name:.*|map_file_name: \"${POSEGRAPH_BASE}\"|" "$SLAM_PARAMS_FILE"
-		echo "[select_map] Updated slam_params.yaml map_file_name -> ${POSEGRAPH_BASE}"
+if [ "$USE_SLAM_TOOLBOX_LOCALIZATION" = "1" ]; then
+	if [ -f "${MAP_DIR_HOST}/map.posegraph" ]; then
+		if [ -f "$SLAM_PARAMS_FILE" ]; then
+			# Replace map_file_name value with container-side path (no extension, slam_toolbox appends it)
+			sed -i "s|map_file_name:.*|map_file_name: \"${POSEGRAPH_BASE}\"|" "$SLAM_PARAMS_FILE"
+			echo "[select_map] Updated slam_params.yaml map_file_name -> ${POSEGRAPH_BASE}"
+		else
+			echo "[select_map] WARNING: slam_params.yaml not found at $SLAM_PARAMS_FILE – slam localization map not updated" >&2
+		fi
 	else
-		echo "[select_map] WARNING: slam_params.yaml not found at $SLAM_PARAMS_FILE – slam localization map not updated" >&2
+		echo "[select_map] WARNING: No .posegraph file found at ${MAP_DIR_HOST}/map.posegraph" >&2
+		echo "[select_map]   Run a mapping session first (run_mapping.sh) to generate the pose graph." >&2
 	fi
 else
-	echo "[select_map] WARNING: No .posegraph file found at ${MAP_DIR_HOST}/map.posegraph" >&2
-	echo "[select_map]   Run a mapping session first (run_mapping.sh) to generate the pose graph." >&2
+	echo "[select_map] AMCL mode (START_SLAM_TOOLBOX=0) – posegraph not required, slam_params.yaml not updated."
 fi
 
 if [ "$RESTART_NAV" = "1" ]; then
@@ -145,12 +163,15 @@ if [ "$RESTART_NAV" = "1" ]; then
 		docker compose restart "$NAV_SERVICE" || docker restart "$NAV_SERVICE" || true
 	fi
 	# Restart slam_cont so localization_slam_toolbox_node loads the new pose graph.
-	SLAM_RUNNING=$(docker compose ps -q slam_cont 2>/dev/null | head -n1)
-	if [ -z "$SLAM_RUNNING" ]; then
-		echo "[select_map] slam_cont is not running — updated map_file_name will be picked up on next stack start."
-	else
-		echo "[select_map] Restarting slam_cont to load new pose graph..."
-		docker compose restart slam_cont || docker restart slam_cont || true
+	# Only needed when slam_toolbox localization is active (START_SLAM_TOOLBOX != 0).
+	if [ "$USE_SLAM_TOOLBOX_LOCALIZATION" = "1" ]; then
+		SLAM_RUNNING=$(docker compose ps -q slam_cont 2>/dev/null | head -n1)
+		if [ -z "$SLAM_RUNNING" ]; then
+			echo "[select_map] slam_cont is not running — updated map_file_name will be picked up on next stack start."
+		else
+			echo "[select_map] Restarting slam_cont to load new pose graph..."
+			docker compose restart slam_cont || docker restart slam_cont || true
+		fi
 	fi
 	echo "[select_map] Waiting 5s..."
 	sleep 5
