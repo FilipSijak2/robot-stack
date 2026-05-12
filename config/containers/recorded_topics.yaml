@@ -5,6 +5,8 @@
 # `/imu/arduino` is kept as a legacy fallback/debug stream.
 - /scan
 - /wheel_odom
+- /odom_rf2o
+- /odometry/filtered
 - /tf
 - /tf_static
 - /map
