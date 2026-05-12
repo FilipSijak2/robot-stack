@@ -1,7 +1,7 @@
 static_transforms:
   # Sensor mount transforms only.
   # Dynamic odom -> base_link must come from robot_localization EKF.
-  # map -> odom remains owned by slam_toolbox.
+  # map -> odom is owned by AMCL when START_SLAM_TOOLBOX=0 / NAV2_USE_AMCL=true.
   #
   # base_link convention in this stack:
   # - base_link is rigidly attached to robot body (does not move relative to robot)
