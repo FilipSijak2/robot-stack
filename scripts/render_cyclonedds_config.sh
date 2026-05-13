@@ -20,6 +20,7 @@ if [ -f .env ]; then
 fi
 
 : "${JETSON_TAILSCALE_IP:=100.125.121.125}"
+: "${JETSON_DDS_PRUNE_DELAY:=5s}"
 : "${PI_DDS_WIFI_INTERFACE:=wlan0}"
 : "${PI_DDS_TAILSCALE_INTERFACE:=tailscale0}"
 
@@ -34,19 +35,21 @@ fi
 python3 - <<'PY'
 import os
 from pathlib import Path
+from xml.sax.saxutils import escape
 
 template = Path("config/cyclonedds.xml.template")
 target = Path("config/cyclonedds.xml")
 
 values = {
     "JETSON_TAILSCALE_IP": os.environ["JETSON_TAILSCALE_IP"],
+    "JETSON_DDS_PRUNE_DELAY": os.environ["JETSON_DDS_PRUNE_DELAY"],
     "PI_DDS_WIFI_INTERFACE": os.environ["PI_DDS_WIFI_INTERFACE"],
     "PI_DDS_TAILSCALE_INTERFACE": os.environ["PI_DDS_TAILSCALE_INTERFACE"],
 }
 
 content = template.read_text(encoding="utf-8")
 for key, value in values.items():
-    content = content.replace("${" + key + "}", value)
+    content = content.replace("${" + key + "}", escape(value))
 
 target.write_text(content, encoding="utf-8")
 print(f"[render_cyclonedds] Wrote {target}")

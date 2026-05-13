@@ -4,8 +4,9 @@
      tailscale0 to avoid arbitrary interface selection across
      wlan / tailscale / docker / bridge interfaces on the Pi host.
      Also include loopback so intra-host container traffic uses lo.
-     Tailscale peer discovery is static because multicast discovery does not
-     traverse Tailscale reliably.
+     Jetson is configured as a soft static peer because multicast discovery
+     does not traverse Tailscale reliably. If it is unreachable, CycloneDDS
+     prunes that peer after 5s.
 
      Render this file with scripts/render_cyclonedds_config.sh after changing
      JETSON_TAILSCALE_IP or interface names in .env. -->
@@ -15,7 +16,7 @@
             <Interfaces>
                 <NetworkInterface name="lo" priority="default" multicast="default" />
                 <NetworkInterface name="wlan0" priority="default" multicast="default" />
-                <NetworkInterface name="tailscale0" priority="default" multicast="false" />
+                <NetworkInterface name="tailscale0" priority="default" multicast="false" presence_required="false" />
             </Interfaces>
             <AllowMulticast>true</AllowMulticast>
             <MaxMessageSize>65500B</MaxMessageSize>
@@ -37,8 +38,8 @@
 
         <Discovery>
             <Peers>
-                <!-- Jetson Orin over Tailscale -->
-                <Peer Address="100.125.121.125" />
+                <!-- Jetson Orin over Tailscale; pruned quickly when unavailable. -->
+                <Peer Address="100.125.121.125" PruneDelay="5s" />
             </Peers>
             <ParticipantIndex>auto</ParticipantIndex>
             <MaxAutoParticipantIndex>60</MaxAutoParticipantIndex>
