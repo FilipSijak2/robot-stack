@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # Stop containers not needed during mapping to free CPU/RAM on RPi 5.
+# nav_cont is restarted in MAPPING_MODE=1 (cmd_vel_mux only, no Nav2) so
+# /set_manual_mode service stays available during mapping.
 # Keeps: database_cont, slam_cont, sensor_fusion_cont, robot_bridge,
 #        laser_driver, rosbridge_websocket, foxglove_bridge (optional, for live preview)
 #
@@ -17,7 +19,6 @@ for arg in "$@"; do
 done
 
 STOP_SERVICES=(
-    nav_cont
     ai_kit_cont
     bag_recorder_cont
     bag_browser
@@ -32,6 +33,10 @@ fi
 echo "[start_mapping] Stopping unneeded containers..."
 docker compose stop "${STOP_SERVICES[@]}" 2>/dev/null || true
 echo "[start_mapping] Stopped: ${STOP_SERVICES[*]}"
+
+echo "[start_mapping] Restarting nav_cont in mapping mode (cmd_vel_mux only, no Nav2)..."
+docker compose stop nav_cont 2>/dev/null || true
+MAPPING_MODE=1 docker compose up -d nav_cont
 echo ""
 echo "[start_mapping] Running containers:"
 docker compose ps --format "table {{.Name}}\t{{.Status}}" 2>/dev/null || docker ps --format "table {{.Names}}\t{{.Status}}"

@@ -11,6 +11,7 @@
     environment:
       CYCLONEDDS_URI: ${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
       MAP_FILE: ${MAP_FILE:-}
+      MAPPING_MODE: ${MAPPING_MODE:-0}
       RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}
       ROS_DOMAIN_ID: ${ROS_DOMAIN_ID}
     volumes:
