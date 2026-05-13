@@ -12,7 +12,7 @@
     <Domain id="any">
         <General>
             <Interfaces>
-                <NetworkInterface name="lo" priority="default" multicast="default" />
+                <NetworkInterface name="lo" priority="default" multicast="false" />
                 <NetworkInterface name="wlan0" priority="default" multicast="default" />
                 <!-- Jetson DDS peer disabled; tailscale0 omitted. -->
             </Interfaces>

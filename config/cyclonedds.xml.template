@@ -12,7 +12,7 @@
     <Domain id="any">
         <General>
             <Interfaces>
-                <NetworkInterface name="lo" priority="default" multicast="default" />
+                <NetworkInterface name="lo" priority="default" multicast="false" />
                 <NetworkInterface name="${PI_DDS_WIFI_INTERFACE}" priority="default" multicast="default" />
 ${TAILSCALE_INTERFACE_XML}
             </Interfaces>
