@@ -20,11 +20,13 @@ if [ -f .env ]; then
 fi
 
 : "${JETSON_TAILSCALE_IP:=100.125.121.125}"
-: "${JETSON_DDS_PRUNE_DELAY:=5s}"
+: "${JETSON_DDS_DISCOVERY_PORT:=7410}"
+: "${ENABLE_JETSON_DDS_PEER:=0}"
 : "${PI_DDS_WIFI_INTERFACE:=wlan0}"
 : "${PI_DDS_TAILSCALE_INTERFACE:=tailscale0}"
 export JETSON_TAILSCALE_IP
-export JETSON_DDS_PRUNE_DELAY
+export JETSON_DDS_DISCOVERY_PORT
+export ENABLE_JETSON_DDS_PEER
 export PI_DDS_WIFI_INTERFACE
 export PI_DDS_TAILSCALE_INTERFACE
 
@@ -45,15 +47,41 @@ template = Path("config/cyclonedds.xml.template")
 target = Path("config/cyclonedds.xml")
 
 values = {
+    "ENABLE_JETSON_DDS_PEER": os.environ["ENABLE_JETSON_DDS_PEER"],
     "JETSON_TAILSCALE_IP": os.environ["JETSON_TAILSCALE_IP"],
-    "JETSON_DDS_PRUNE_DELAY": os.environ["JETSON_DDS_PRUNE_DELAY"],
+    "JETSON_DDS_DISCOVERY_PORT": os.environ["JETSON_DDS_DISCOVERY_PORT"],
     "PI_DDS_WIFI_INTERFACE": os.environ["PI_DDS_WIFI_INTERFACE"],
     "PI_DDS_TAILSCALE_INTERFACE": os.environ["PI_DDS_TAILSCALE_INTERFACE"],
 }
 
+jetson_enabled = values["ENABLE_JETSON_DDS_PEER"].strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+
+if jetson_enabled:
+    tailscale_interface_xml = (
+        f'                <NetworkInterface name="{escape(values["PI_DDS_TAILSCALE_INTERFACE"])}" '
+        'priority="default" multicast="false" />'
+    )
+    jetson_peers_xml = (
+        "            <Peers>\n"
+        "                <!-- Jetson Orin over Tailscale. -->\n"
+        f'                <Peer Address="{escape(values["JETSON_TAILSCALE_IP"])}:'
+        f'{escape(values["JETSON_DDS_DISCOVERY_PORT"])}" />\n'
+        "            </Peers>"
+    )
+else:
+    tailscale_interface_xml = "                <!-- Jetson DDS peer disabled; tailscale0 omitted. -->"
+    jetson_peers_xml = "            <!-- Jetson DDS peer disabled. -->"
+
 content = template.read_text(encoding="utf-8")
 for key, value in values.items():
     content = content.replace("${" + key + "}", escape(value))
+content = content.replace("${TAILSCALE_INTERFACE_XML}", tailscale_interface_xml)
+content = content.replace("${JETSON_PEERS_XML}", jetson_peers_xml)
 
 target.write_text(content, encoding="utf-8")
 print(f"[render_cyclonedds] Wrote {target}")

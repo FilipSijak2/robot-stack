@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Shared CycloneDDS configuration for the stack.
-     Pin DDS traffic to lo, wlan0 and
-     tailscale0 to avoid arbitrary interface selection across
-     wlan / tailscale / docker / bridge interfaces on the Pi host.
+     Pin DDS traffic to lo and wlan0 by default to avoid
+     arbitrary interface selection across wlan / tailscale / docker / bridge
+     interfaces on the Pi host.
      Also include loopback so intra-host container traffic uses lo.
-     Jetson is configured as a soft static peer because multicast discovery
-     does not traverse Tailscale reliably. If it is unreachable, CycloneDDS
-     prunes that peer after 5s.
+     Jetson DDS peer can be enabled through .env when needed.
 
      Render this file with scripts/render_cyclonedds_config.sh after changing
      JETSON_TAILSCALE_IP or interface names in .env. -->
@@ -16,7 +14,7 @@
             <Interfaces>
                 <NetworkInterface name="lo" priority="default" multicast="default" />
                 <NetworkInterface name="wlan0" priority="default" multicast="default" />
-                <NetworkInterface name="tailscale0" priority="default" multicast="false" presence_required="false" />
+                <!-- Jetson DDS peer disabled; tailscale0 omitted. -->
             </Interfaces>
             <AllowMulticast>true</AllowMulticast>
             <MaxMessageSize>65500B</MaxMessageSize>
@@ -37,10 +35,7 @@
         </Internal>
 
         <Discovery>
-            <Peers>
-                <!-- Jetson Orin over Tailscale; pruned quickly when unavailable. -->
-                <Peer Address="100.125.121.125" PruneDelay="5s" />
-            </Peers>
+            <!-- Jetson DDS peer disabled. -->
             <ParticipantIndex>auto</ParticipantIndex>
             <MaxAutoParticipantIndex>60</MaxAutoParticipantIndex>
             <SPDPMulticastAddress>239.255.0.1</SPDPMulticastAddress>
