@@ -23,6 +23,10 @@ fi
 : "${JETSON_DDS_PRUNE_DELAY:=5s}"
 : "${PI_DDS_WIFI_INTERFACE:=wlan0}"
 : "${PI_DDS_TAILSCALE_INTERFACE:=tailscale0}"
+export JETSON_TAILSCALE_IP
+export JETSON_DDS_PRUNE_DELAY
+export PI_DDS_WIFI_INTERFACE
+export PI_DDS_TAILSCALE_INTERFACE
 
 template="config/cyclonedds.xml.template"
 target="config/cyclonedds.xml"
