@@ -16,3 +16,5 @@
 - /camera/realsense/color/camera_info
 - /camera/realsense/imu/gyro
 - /camera/realsense/imu/accel
+- /plan
+- /local_plan
