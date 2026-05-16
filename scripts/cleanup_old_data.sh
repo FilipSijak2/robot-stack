@@ -10,6 +10,9 @@ set -euo pipefail
 #
 # Designed to be called from a cron job on the RPi host, e.g.:
 #   0 3 * * * /home/pi/stack/scripts/cleanup_old_data.sh --delete >> /home/pi/stack/logs/cleanup.log 2>&1
+#
+# IMPORTANT: the --delete flag is required; without it the script runs in
+# dry-run mode and prints what would be deleted but removes nothing.
 
 REPO_ROOT="$(cd "$(dirname "$0")"/.. && pwd)"
 BAGS_DIR="$REPO_ROOT/bags"
@@ -54,6 +57,7 @@ delete_old() {
     while IFS= read -r -d '' entry; do
         # Get size before deletion (in bytes, works for files and dirs via du)
         size_kb=$(du -sk "$entry" 2>/dev/null | awk '{print $1}')
+        size_kb=${size_kb:-0}
         size_bytes=$(( size_kb * 1024 ))
 
         if [ "$DRY_RUN" -eq 1 ]; then
@@ -75,4 +79,10 @@ if [ "$DRY_RUN" -eq 1 ]; then
 else
     freed_mb=$(( deleted_bytes / 1048576 ))
     echo "[INFO] Done. Removed ${deleted_count} entries, freed ~${freed_mb} MB."
+fi
+
+# Rotate cleanup.log itself: keep only the last 500 lines to prevent unbounded growth.
+CLEANUP_LOG="$LOGS_DIR/cleanup.log"
+if [ -f "$CLEANUP_LOG" ]; then
+    tail -n 500 "$CLEANUP_LOG" > "${CLEANUP_LOG}.tmp" && mv "${CLEANUP_LOG}.tmp" "$CLEANUP_LOG"
 fi
