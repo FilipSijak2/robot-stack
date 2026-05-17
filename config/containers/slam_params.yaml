@@ -21,7 +21,7 @@ slam_toolbox:
     # Sensor parameters
     minimum_laser_range: 0.2
     max_laser_range: 10.0
-    minimum_time_interval: 0.2 # Bez enkodera, češće procesiranje smanjuje drift rf2o
+    minimum_time_interval: 0.1 # Brže procesiranje pri rotaciji smanjuje drift
     transform_timeout: 0.5
     tf_buffer_duration: 30.0
     message_filter_queue_size: 100 # Veći queue: sprječava 'discarding message because the queue is full'
@@ -32,9 +32,9 @@ slam_toolbox:
     minimum_travel_heading: 0.17 # ~10 degrees
 
     # Loop closure parameters (disabled in localization mode; run_mapping.sh override enables it for mapping)
-    loop_search_maximum_distance: 2.0
+    loop_search_maximum_distance: 2.5
     do_loop_closing: true
-    loop_match_minimum_chain_size: 15
+    loop_match_minimum_chain_size: 10  # Manji stan: 10 umjesto 15, brza potvrda zatvorene petlje
     loop_match_maximum_variance_coarse: 3.0
     loop_match_minimum_response_coarse: 0.35
 

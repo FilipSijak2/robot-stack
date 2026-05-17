@@ -54,13 +54,13 @@ ekf_filter_node:
       false,  # x, y, z positions
       false,
       false,
-      false,  # roll, pitch, yaw orientations
+      false,  # roll, pitch, yaw orientations (D455 nema magnetometar, yaw je relativan - ne koristimo)
       false,
       false,
       false,  # x, y, z velocities
       false,
       false,
-      false,  # roll, pitch, yaw velocities
+      true,   # roll, pitch, yaw velocities - SAMO yaw rate (gyro Z) - pouzdan za kratkorocnu rotaciju
       false,
       false,
       false,
