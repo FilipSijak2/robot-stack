@@ -82,7 +82,6 @@
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - ./config/containers/slam_params.yaml:/app/slam_params.yaml
-      - ./config/containers/run_mapping.sh:/app/run_mapping.sh
       - ./srv:/srv
       - ./config/containers/static_tf.yaml:/app/static_tf.yaml
       - /usr/bin/docker:/usr/bin/docker:ro
