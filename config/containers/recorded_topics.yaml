@@ -16,5 +16,7 @@
 - /camera/realsense/color/camera_info
 - /camera/realsense/imu/gyro
 - /camera/realsense/imu/accel
+# Nav2 global path.
 - /plan
 - /local_plan
+- /global_costmap/published_footprint
