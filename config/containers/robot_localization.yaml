@@ -52,15 +52,15 @@ ekf_filter_node:
       false,
       false,
       false,  # x, y, z positions
-      true,
-      true,
-      true,  # roll, pitch, yaw orientations
+      false,
+      false,
+      false,  # roll, pitch, yaw orientations
       false,
       false,
       false,  # x, y, z velocities
-      true,
-      true,
-      true,  # roll, pitch, yaw velocities
+      false,
+      false,
+      false,  # roll, pitch, yaw velocities
       false,
       false,
       false,
