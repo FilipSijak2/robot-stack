@@ -3,7 +3,7 @@ slam_toolbox:
     # Basic parameters
     use_sim_time: false
     map_file_name: "my_map"
-    resolution: 0.03
+    resolution: 0.02
     # Ensure the map is published so /map topic exists
     publish_map: true
     # Frame configuration (needed for proper transforms & map publication)
@@ -21,15 +21,15 @@ slam_toolbox:
     # Sensor parameters
     minimum_laser_range: 0.2
     max_laser_range: 10.0
-    minimum_time_interval: 0.2
+    minimum_time_interval: 0.12
     transform_timeout: 0.5
     tf_buffer_duration: 30.0
     message_filter_queue_size: 100 # Veći queue: sprječava 'discarding message because the queue is full'
 
     # Performance optimization
     stack_size_to_use: 40000000
-    minimum_travel_distance: 0.1
-    minimum_travel_heading: 0.17 # ~10 degrees
+    minimum_travel_distance: 0.05
+    minimum_travel_heading: 0.08
 
     # Loop closure parameters (disabled in localization mode; run_mapping.sh override enables it for mapping)
     loop_search_maximum_distance: 1.5
