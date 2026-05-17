@@ -16,6 +16,9 @@
 - /camera/realsense/color/camera_info
 - /camera/realsense/imu/gyro
 - /camera/realsense/imu/accel
+- /cmd_vel_joy
+- /robot_status
+- /pose
 # Nav2 global path.
 - /plan
 - /local_plan
