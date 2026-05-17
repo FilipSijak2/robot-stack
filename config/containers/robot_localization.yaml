@@ -60,7 +60,7 @@ ekf_filter_node:
       false,  # x, y, z velocities
       false,
       false,
-      true,   # roll, pitch, yaw velocities - SAMO yaw rate (gyro Z) - pouzdan za kratkorocnu rotaciju
+      false,  # roll, pitch, yaw velocities - disabled for RF2O-only mapping stability
       false,
       false,
       false,
