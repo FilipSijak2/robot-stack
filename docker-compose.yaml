@@ -287,6 +287,7 @@
     volumes:
       - ./config/containers/recorded_topics.yaml:/config/recorded_topics.yaml:ro
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
+      - ./tmp/bags_in_progress:/bags_in_progress
       - ./bags:/bags
     depends_on:
       - rosbridge_websocket

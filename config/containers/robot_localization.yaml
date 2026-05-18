@@ -1,5 +1,5 @@
 # Extended Kalman Filter configuration for sensor fusion
-# Fuses rf2o laser odometry with RealSense D455 IMU (orientation + angular velocity only).
+# Fuses rf2o laser odometry with RealSense D455 IMU yaw-rate support.
 # IMU linear accelerations are excluded: RealSense D455 MEMS accelerometer is too noisy
 # (~±0.1 m/s² at rest vs ~1.5 m/s² peak) for reliable double-integration into position.
 # Legacy Arduino IMU remains available on /imu/arduino for fallback/debug.
@@ -60,7 +60,7 @@ ekf_filter_node:
       false,  # x, y, z velocities
       false,
       false,
-      false,  # roll, pitch, yaw velocities - disabled for RF2O-only mapping stability
+      true,  # roll, pitch, yaw velocities - use gyro yaw-rate to stabilize rotations
       false,
       false,
       false,
