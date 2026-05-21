@@ -261,6 +261,8 @@
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - /dev:/dev
       - /sys/bus:/sys/bus
+      - /sys/devices:/sys/devices
+      - /run/udev:/run/udev:ro
     env_file:
       - ./config/containers/realsense_cont.env
     environment:
