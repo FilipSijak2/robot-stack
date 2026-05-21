@@ -45,9 +45,9 @@ ekf_filter_node:
     odom0_differential: false
     odom0_relative: false
 
-    # IMU configuration (RealSense D455 - samo orijentacija i kutne brzine)
-    # Akceleracije isključene: MEMS akcelerometar D455 ima previsok šum za EKF fusiju.
-    imu0: /imu/data
+    # IMU configuration (RealSense D455 gyro transformed from optical frame to base_link).
+    # Akceleracije iskljucene: MEMS akcelerometar D455 ima previsok sum za EKF fusiju.
+    imu0: /imu/base_link
     imu0_config: [
       false,
       false,
