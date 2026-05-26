@@ -20,7 +20,8 @@ On the Raspberry Pi:
 - CPU temperature,
 - undervoltage and throttling flags,
 - ARM clock frequency,
-- top Docker containers by CPU and memory usage.
+- top Docker containers by CPU and memory usage,
+- top Linux processes by CPU and RSS memory usage, with Docker container mapping when detectable.
 
 ## Architecture
 
@@ -33,6 +34,8 @@ Raspberry Pi 5 robot - robot-stack repo
     - rpi_undervoltage_now
     - docker_container_cpu_percent
     - docker_container_mem_usage_bytes
+    - rpi_top_process_cpu_percent
+    - rpi_top_process_memory_rss_bytes
         |
         | Tailscale scrape every 15s
         v
@@ -70,7 +73,7 @@ docker compose -f monitoring/rpi/docker-compose.exporters.yaml up -d
 Test locally:
 
 ```bash
-curl http://localhost:9100/metrics | grep -E "rpi_cpu_temperature|docker_container_cpu|docker_container_mem|node_load1"
+curl http://localhost:9100/metrics | grep -E "rpi_cpu_temperature|docker_container_cpu|docker_container_mem|rpi_top_process|node_load1"
 ```
 
 ### Optional systemd service for custom metrics
@@ -165,6 +168,24 @@ topk(10, docker_container_cpu_percent)
 topk(10, docker_container_mem_usage_bytes)
 ```
 
+### Top processes by sampled CPU
+
+```promql
+topk(15, rpi_top_process_cpu_percent{source="top_cpu"})
+```
+
+Useful labels:
+
+```text
+pid, ppid, user, comm, container, rank
+```
+
+### Top processes by RSS memory
+
+```promql
+topk(15, rpi_top_process_memory_rss_bytes{source="top_mem"})
+```
+
 ### Throttling / undervoltage
 
 ```promql
@@ -190,17 +211,29 @@ For each scenario, watch:
 - throttling flags,
 - top container CPU,
 - top container memory,
+- top Linux process CPU,
+- top Linux process memory,
 - network traffic,
 - disk usage if bag recording is active.
 
 This shows what actually costs resources before changing the stack.
+
+## Process metrics notes
+
+`rpi_top_process_*` metrics are snapshots from `ps`. They are intended for diagnosis, not long-term billing-grade accounting. PID labels change as processes restart, so use them for short test windows. The `container` label is inferred from `/proc/<pid>/cgroup` and `docker ps`; if it cannot be mapped, the process is labeled as `host`.
+
+Default top process count is 15. Override it in the systemd service if needed:
+
+```ini
+Environment=RPI_TOP_PROCESS_COUNT=20
+```
 
 ## Expected overhead
 
 RPi side:
 
 - `node_exporter`: usually low CPU and memory usage,
-- custom metrics script every 15s: short `docker stats --no-stream` snapshot,
+- custom metrics script every 15s: short `docker stats --no-stream` and `ps` snapshots,
 - no local time-series database,
 - no Grafana web UI.
 
