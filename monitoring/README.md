@@ -3,7 +3,7 @@
 This monitoring setup is designed for the thesis robot stack:
 
 - Raspberry Pi 5 robot only exports metrics.
-- Banana Pi runs Prometheus and Grafana.
+- Banana Pi runs Prometheus and Grafana from the `FilipSijak2/rezije` repository.
 - Prometheus scrapes the RPi over Tailscale.
 - The robot does not run Prometheus, Grafana, or any time-series database.
 
@@ -25,7 +25,7 @@ On the Raspberry Pi:
 ## Architecture
 
 ```text
-Raspberry Pi 5 robot
+Raspberry Pi 5 robot - robot-stack repo
   node_exporter :9100
   textfile collector metrics
     - rpi_cpu_temperature_celsius
@@ -36,7 +36,7 @@ Raspberry Pi 5 robot
         |
         | Tailscale scrape every 15s
         v
-Banana Pi
+Banana Pi - rezije repo
   Prometheus :9090
   Grafana    :3000
 ```
@@ -92,9 +92,18 @@ systemctl status rpi-robot-metrics.service
 
 ## Banana Pi setup
 
-On Banana Pi, copy or pull this repo/monitoring folder and go to:
+The Banana Pi Prometheus/Grafana stack has been moved to:
+
+```text
+FilipSijak2/rezije
+branch: chatgpt-banana-monitoring
+path: monitoring/banana
+```
+
+On Banana Pi:
 
 ```bash
+git checkout chatgpt-banana-monitoring
 cd monitoring/banana
 cp prometheus.example.yml prometheus.yml
 ```
@@ -105,20 +114,13 @@ Edit `prometheus.yml` and set the Raspberry Pi Tailscale IP or MagicDNS name:
 - targets: ["<RASPBERRY_PI_TAILSCALE_IP>:9100"]
 ```
 
-Historical project examples included:
-
-```text
-Banana Pi registry: 100.67.134.63:5000
-Raspberry Pi example: 100.115.192.116
-```
-
 Check the current RPi Tailscale IP with:
 
 ```bash
 tailscale status
 ```
 
-Start monitoring:
+Start monitoring from the `rezije` repository:
 
 ```bash
 docker compose -f docker-compose.monitoring.yaml up -d
@@ -129,19 +131,6 @@ Open:
 ```text
 Grafana:    http://<banana-pi-tailscale-ip>:3000
 Prometheus: http://<banana-pi-tailscale-ip>:9090
-```
-
-Default Grafana login:
-
-```text
-admin / admin
-```
-
-Change it immediately after first login or set:
-
-```bash
-export GRAFANA_ADMIN_USER=admin
-export GRAFANA_ADMIN_PASSWORD='<strong-password>'
 ```
 
 ## Useful Prometheus queries
@@ -219,7 +208,7 @@ Banana Pi side:
 
 - Prometheus stores metrics,
 - Grafana serves dashboard,
-- retention is limited to 14 days or 4 GB by default.
+- retention is configured in the `rezije` monitoring compose.
 
 ## Notes
 
