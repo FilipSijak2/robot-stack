@@ -56,8 +56,8 @@ bt_navigator:
     global_frame: map
     robot_base_frame: base_link
     odom_topic: /odometry/filtered
-    bt_loop_duration: 50
-    default_server_timeout: 30
+    bt_loop_duration: 10
+    default_server_timeout: 20
     # 'default_nav_through_poses_bt_xml' and 'default_nav_to_pose_bt_xml' are use defaults:
     # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
     # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml
@@ -137,16 +137,12 @@ controller_server:
       yaw_goal_tolerance: 0.25
 
     FollowPath:
-      plugin: "nav2_rotation_shim_controller::RotationShimController"
-      primary_controller: "dwb_core::DWBLocalPlanner"
-      angular_dist_threshold: 0.45
-      forward_sampling_distance: 0.5
-      rotate_to_heading_angular_vel: 0.40
-      max_angular_accel: 0.9
+      plugin: "dwb_core::DWBLocalPlanner"
+      max_angular_accel: 0.8
       simulate_ahead_time: 1.0
-      rotate_to_goal_heading: true
-      debug_trajectory_details: false
-      min_vel_x: -0.22
+      rotate_to_goal_heading: false
+      debug_trajectory_details: true
+      min_vel_x: 0.0
       min_vel_y: 0.0
       max_vel_x: 0.22
       max_vel_y: 0.0
@@ -162,9 +158,9 @@ controller_server:
       decel_lim_x: -0.6
       decel_lim_y: 0.0
       decel_lim_theta: -0.9
-      vx_samples: 12
+      vx_samples: 20
       vy_samples: 5
-      vtheta_samples: 16
+      vtheta_samples: 20
       sim_time: 1.7
       linear_granularity: 0.05
       angular_granularity: 0.025
@@ -178,14 +174,12 @@ controller_server:
           "RotateToGoal",
           "Oscillation",
           "BaseObstacle",
-          "ObstacleFootprint",
           "GoalAlign",
           "PathAlign",
           "PathDist",
           "GoalDist",
         ]
-      BaseObstacle.scale: 0.20
-      ObstacleFootprint.scale: 120.0
+      BaseObstacle.scale: 0.08
       PathAlign.scale: 32.0
       PathAlign.forward_point_distance: 0.1
       GoalAlign.scale: 24.0
