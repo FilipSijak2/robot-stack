@@ -15,6 +15,8 @@
 - /particle_cloud
 - /cmd_vel
 - /cmd_vel_auto
+- /cmd_vel_safety_in
+- /cmd_vel_safety_status
 - /cmd_vel_collision_in
 - /collision_monitor_state
 - /imu/data

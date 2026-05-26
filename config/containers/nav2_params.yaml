@@ -208,14 +208,14 @@ local_costmap:
       width: 3
       height: 3
       resolution: 0.05
-      # Physical footprint; obstacle clearance comes from inflation and critics.
+      # Keep local costmap odom-only; static map obstacles stay in global_costmap.
       footprint: "[[0.16, 0.165], [0.16, -0.165], [-0.11, -0.165], [-0.11, 0.165]]"
-      footprint_padding: 0.0
-      plugins: ["static_layer", "voxel_layer", "inflation_layer"]
+      footprint_padding: 0.02
+      plugins: ["voxel_layer", "inflation_layer"]
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.2
-        inflation_radius: 0.75
+        cost_scaling_factor: 2.5
+        inflation_radius: 0.65
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: true
@@ -258,9 +258,6 @@ local_costmap:
           raytrace_min_range: 0.05
           obstacle_max_range: 2.5
           obstacle_min_range: 0.05
-      static_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: true
       always_send_full_costmap: true
 
 global_costmap:
@@ -271,9 +268,9 @@ global_costmap:
       global_frame: map
       robot_base_frame: base_link
       use_sim_time: false
-      # Physical footprint; obstacle clearance comes from inflation and critics.
+      # Static map obstacles are handled here; local_costmap remains lighter.
       footprint: "[[0.16, 0.165], [0.16, -0.165], [-0.11, -0.165], [-0.11, 0.165]]"
-      footprint_padding: 0.0
+      footprint_padding: 0.02
       resolution: 0.05
       track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
@@ -307,8 +304,8 @@ global_costmap:
         map_subscribe_transient_local: true
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.2
-        inflation_radius: 0.75
+        cost_scaling_factor: 2.5
+        inflation_radius: 0.65
       always_send_full_costmap: true
 
 map_server:
