@@ -5,8 +5,55 @@ OUT_DIR="${TEXTFILE_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/monito
 OUT_FILE="${OUT_DIR}/rpi_robot.prom"
 TMP_FILE="${OUT_FILE}.tmp"
 INTERVAL_S="${RPI_METRICS_INTERVAL_S:-15}"
+TOP_PROCESS_COUNT="${RPI_TOP_PROCESS_COUNT:-15}"
 
 mkdir -p "${OUT_DIR}"
+
+escape_label() {
+  printf '%s' "${1:-}" | sed 's/\\/\\\\/g; s/"/\\"/g; s/\n/ /g; s/\r/ /g'
+}
+
+container_for_pid() {
+  local pid="${1:-}" cid name
+  if [ -z "${pid}" ] || [ ! -r "/proc/${pid}/cgroup" ]; then
+    echo "host"
+    return
+  fi
+
+  cid="$(grep -aoE '[0-9a-f]{64}' "/proc/${pid}/cgroup" 2>/dev/null | head -n1 || true)"
+  if [ -z "${cid}" ]; then
+    echo "host"
+    return
+  fi
+
+  name="$(printf '%s\n' "${DOCKER_ID_NAME_MAP:-}" | awk -v cid="${cid}" '$1 == cid {print $2; exit}')"
+  if [ -n "${name}" ]; then
+    echo "${name}"
+  else
+    echo "${cid:0:12}"
+  fi
+}
+
+write_process_snapshot() {
+  local sort_key source rank pid ppid user comm pcpu pmem rss rss_bytes container safe_user safe_comm safe_container
+  sort_key="$1"
+  source="$2"
+
+  ps -eo pid=,ppid=,user=,comm=,pcpu=,pmem=,rss= --sort="${sort_key}" 2>/dev/null \
+    | head -n "${TOP_PROCESS_COUNT}" \
+    | awk '{print NR, $0}' \
+    | while read -r rank pid ppid user comm pcpu pmem rss; do
+      [ -n "${pid:-}" ] || continue
+      rss_bytes=$(( ${rss:-0} * 1024 ))
+      container="$(container_for_pid "${pid}")"
+      safe_user="$(escape_label "${user}")"
+      safe_comm="$(escape_label "${comm}")"
+      safe_container="$(escape_label "${container}")"
+
+      echo "rpi_top_process_cpu_percent{source=\"${source}\",rank=\"${rank}\",pid=\"${pid}\",ppid=\"${ppid}\",user=\"${safe_user}\",comm=\"${safe_comm}\",container=\"${safe_container}\"} ${pcpu:-0}" >> "${TMP_FILE}"
+      echo "rpi_top_process_memory_rss_bytes{source=\"${source}\",rank=\"${rank}\",pid=\"${pid}\",ppid=\"${ppid}\",user=\"${safe_user}\",comm=\"${safe_comm}\",container=\"${safe_container}\"} ${rss_bytes}" >> "${TMP_FILE}"
+    done
+}
 
 write_metrics_once() {
   local now
@@ -53,7 +100,10 @@ write_metrics_once() {
     } >> "${TMP_FILE}"
   fi
 
+  DOCKER_ID_NAME_MAP=""
   if command -v docker >/dev/null 2>&1; then
+    DOCKER_ID_NAME_MAP="$(docker ps --no-trunc --format '{{.ID}} {{.Names}}' 2>/dev/null || true)"
+
     {
       echo "# HELP docker_container_cpu_percent Docker container CPU percent from docker stats snapshot."
       echo "# TYPE docker_container_cpu_percent gauge"
@@ -63,7 +113,7 @@ write_metrics_once() {
 
     docker stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}' 2>/dev/null | while IFS='|' read -r name cpu mem; do
       [ -n "${name}" ] || continue
-      local cpu_num mem_usage mem_unit mem_bytes safe_name
+      local cpu_num mem_usage mem_unit mem_num mem_bytes safe_name
       cpu_num="$(printf '%s' "${cpu}" | tr -d '%' | tr ',' '.')"
       mem_usage="$(printf '%s' "${mem}" | awk -F/ '{print $1}' | xargs | sed 's/,/./g')"
       mem_unit="$(printf '%s' "${mem_usage}" | sed -E 's/[0-9. ]//g')"
@@ -79,11 +129,20 @@ write_metrics_once() {
         else m=1;
         printf "%.0f", n*m;
       }')"
-      safe_name="$(printf '%s' "${name}" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+      safe_name="$(escape_label "${name}")"
       echo "docker_container_cpu_percent{container=\"${safe_name}\"} ${cpu_num:-0}" >> "${TMP_FILE}"
       echo "docker_container_mem_usage_bytes{container=\"${safe_name}\"} ${mem_bytes:-0}" >> "${TMP_FILE}"
     done
   fi
+
+  {
+    echo "# HELP rpi_top_process_cpu_percent Top Linux processes by sampled CPU percent. Labels include PID, command and Docker container when detected."
+    echo "# TYPE rpi_top_process_cpu_percent gauge"
+    echo "# HELP rpi_top_process_memory_rss_bytes Resident memory usage of top Linux processes. Labels include PID, command and Docker container when detected."
+    echo "# TYPE rpi_top_process_memory_rss_bytes gauge"
+  } >> "${TMP_FILE}"
+  write_process_snapshot "-pcpu" "top_cpu"
+  write_process_snapshot "-rss" "top_mem"
 
   mv "${TMP_FILE}" "${OUT_FILE}"
 }
