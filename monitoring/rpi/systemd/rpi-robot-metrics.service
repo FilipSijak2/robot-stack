@@ -1,0 +1,18 @@
+[Unit]
+Description=RPi robot lightweight custom metrics writer
+After=docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/raspberry/robot-stack
+Environment=TEXTFILE_DIR=/home/raspberry/robot-stack/monitoring/textfile
+Environment=RPI_METRICS_INTERVAL_S=15
+ExecStart=/home/raspberry/robot-stack/monitoring/rpi/scripts/write_rpi_metrics.sh
+Restart=always
+RestartSec=5
+Nice=10
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=multi-user.target
