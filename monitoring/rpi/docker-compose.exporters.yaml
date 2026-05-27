@@ -18,7 +18,9 @@ services:
       - "--web.listen-address=:9100"
     volumes:
       - "/:/host:ro,rslave"
-      - "./monitoring/textfile:/textfile:ro"
+      # Compose resolves relative paths from this compose file directory: monitoring/rpi.
+      # ../textfile therefore maps to robot-stack/monitoring/textfile.
+      - "../textfile:/textfile:ro"
     read_only: true
     security_opt:
       - no-new-privileges:true
