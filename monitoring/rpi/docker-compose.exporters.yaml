@@ -1,0 +1,27 @@
+# Lightweight monitoring exporters for Raspberry Pi robot runtime.
+#
+# Run on the Raspberry Pi, next to robot-stack:
+#   docker compose -f monitoring/rpi/docker-compose.exporters.yaml up -d
+#
+# This only exposes metrics. Prometheus/Grafana should run on the Banana Pi.
+
+services:
+  node_exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: rpi_node_exporter
+    network_mode: host
+    pid: host
+    restart: unless-stopped
+    command:
+      - "--path.rootfs=/host"
+      - "--collector.textfile.directory=/textfile"
+      - "--web.listen-address=:9100"
+    volumes:
+      - "/:/host:ro,rslave"
+      - "./monitoring/textfile:/textfile:ro"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      monitoring.role: "rpi-exporter"
+      monitoring.note: "Scraped remotely by Banana Pi Prometheus"
