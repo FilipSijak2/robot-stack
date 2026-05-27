@@ -15,6 +15,8 @@
 - /particle_cloud
 - /cmd_vel
 - /cmd_vel_auto
+- /cmd_vel_nav
+- /cmd_vel_smoothed
 - /cmd_vel_safety_in
 - /cmd_vel_safety_status
 - /manual_mode
