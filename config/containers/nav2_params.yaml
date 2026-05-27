@@ -41,12 +41,12 @@ amcl:
     z_short: 0.05
     scan_topic: /scan_filtered
     map_topic: map
-    set_initial_pose: false
+    set_initial_pose: true
     initial_pose:
-      x: 0.0
-      y: 0.0
+      x: 0.026
+      y: -0.127
       z: 0.0
-      yaw: 0.0
+      yaw: 3.093 # ~177 deg; measured via /initialpose echo on 2026-05-27
     always_reset_initial_pose: false
     first_map_only: false
 
@@ -56,7 +56,7 @@ bt_navigator:
     global_frame: map
     robot_base_frame: base_link
     odom_topic: /odometry/filtered
-    bt_loop_duration: 100
+    bt_loop_duration: 10
     default_server_timeout: 20
     # 'default_nav_through_poses_bt_xml' and 'default_nav_to_pose_bt_xml' are use defaults:
     # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
@@ -114,7 +114,7 @@ bt_navigator:
 controller_server:
   ros__parameters:
     use_sim_time: false
-    controller_frequency: 10.0
+    controller_frequency: 20.0
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
@@ -146,7 +146,7 @@ controller_server:
       min_vel_y: 0.0
       max_vel_x: 0.22
       max_vel_y: 0.0
-      max_vel_theta: 0.35
+      max_vel_theta: 0.30
       min_speed_xy: 0.0
       max_speed_xy: 0.22
       min_speed_theta: 0.0
@@ -158,9 +158,9 @@ controller_server:
       decel_lim_x: -0.6
       decel_lim_y: 0.0
       decel_lim_theta: -0.9
-      vx_samples: 12
+      vx_samples: 20
       vy_samples: 5
-      vtheta_samples: 16
+      vtheta_samples: 24
       sim_time: 1.7
       linear_granularity: 0.05
       angular_granularity: 0.025
@@ -191,6 +191,11 @@ controller_server:
       RotateToGoal.scale: 16.0
       RotateToGoal.slowing_factor: 12.0
       RotateToGoal.lookahead_time: 0.3
+      # Oscillation critic: require 0.3 rad of committed rotation before declaring
+      # oscillation. Default 0.2 rad triggers too early on carpet where traction
+      # resistance causes small back-and-forth twitches.
+      Oscillation.oscillation_reset_angle: 0.3
+      Oscillation.oscillation_reset_dist: 0.05
 
 local_costmap:
   local_costmap:
@@ -321,7 +326,7 @@ map_saver:
 
 planner_server:
   ros__parameters:
-    expected_planner_frequency: 5.0
+    expected_planner_frequency: 20.0
     use_sim_time: false
     planner_plugins: ["GridBased"]
     GridBased:
@@ -362,7 +367,7 @@ behavior_server:
     transform_tolerance: 0.3
     use_sim_time: false
     simulate_ahead_time: 2.0
-    max_rotational_vel: 0.35
+    max_rotational_vel: 0.30
     min_rotational_vel: 0.08
     rotational_acc_lim: 0.9
 
@@ -384,14 +389,14 @@ waypoint_follower:
 velocity_smoother:
   ros__parameters:
     use_sim_time: false
-    smoothing_frequency: 10.0
+    smoothing_frequency: 20.0
     scale_velocities: false
-    feedback: "OPEN_LOOP"
-    max_velocity: [0.22, 0.0, 0.35]
-    min_velocity: [-0.22, 0.0, -0.35]
+    feedback: "CLOSED_LOOP"
+    max_velocity: [0.22, 0.0, 0.30]
+    min_velocity: [-0.22, 0.0, -0.30]
     max_accel: [0.6, 0.0, 0.9]
     max_decel: [-0.6, 0.0, -0.9]
     odom_topic: "/odometry/filtered"
-    odom_duration: 0.3
+    odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0
