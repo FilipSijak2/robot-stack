@@ -192,7 +192,7 @@ controller_server:
       # ObstacleFootprint at scale 30 (not 120) prevents corner-cutting without
       # rejecting all trajectories in a small room. Safe because RotationShimController
       # handles rotations directly — DWB only runs when heading is already aligned.
-      ObstacleFootprint.scale: 30.0
+      ObstacleFootprint.scale: 2.0
       PathAlign.scale: 32.0
       PathAlign.forward_point_distance: 0.1
       GoalAlign.scale: 24.0
