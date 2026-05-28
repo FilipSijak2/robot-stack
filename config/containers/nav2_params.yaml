@@ -57,7 +57,9 @@ bt_navigator:
     robot_base_frame: base_link
     odom_topic: /odometry/filtered
     bt_loop_duration: 100
-    default_server_timeout: 20
+    # Milliseconds. 20 ms is too tight on the Pi under DDS/costmap load and
+    # causes false BT action/service timeouts during otherwise valid motion.
+    default_server_timeout: 1000
     # 'default_nav_through_poses_bt_xml' and 'default_nav_to_pose_bt_xml' are use defaults:
     # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
     # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml
@@ -179,7 +181,7 @@ controller_server:
           "PathDist",
           "GoalDist",
         ]
-      BaseObstacle.scale: 0.08
+      BaseObstacle.scale: 0.28
       PathAlign.scale: 32.0
       PathAlign.forward_point_distance: 0.1
       GoalAlign.scale: 24.0
@@ -208,14 +210,17 @@ local_costmap:
       width: 3
       height: 3
       resolution: 0.05
-      # Keep local costmap odom-only; static map obstacles stay in global_costmap.
+      # Include static map obstacles locally so DWB cannot cut through mapped objects.
       footprint: "[[0.16, 0.165], [0.16, -0.165], [-0.11, -0.165], [-0.11, 0.165]]"
-      footprint_padding: 0.02
-      plugins: ["voxel_layer", "inflation_layer"]
+      footprint_padding: 0.03
+      plugins: ["static_layer", "voxel_layer", "inflation_layer"]
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: true
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.5
-        inflation_radius: 0.40
+        cost_scaling_factor: 2.0
+        inflation_radius: 0.55
       voxel_layer:
         plugin: "nav2_costmap_2d::VoxelLayer"
         enabled: true
@@ -269,9 +274,9 @@ global_costmap:
       robot_base_frame: base_link
       transform_tolerance: 0.3
       use_sim_time: false
-      # Static map obstacles are handled here; local_costmap remains lighter.
+      # Global planner keeps a broad static-map inflation field for safer routes.
       footprint: "[[0.16, 0.165], [0.16, -0.165], [-0.11, -0.165], [-0.11, 0.165]]"
-      footprint_padding: 0.02
+      footprint_padding: 0.03
       resolution: 0.05
       track_unknown_space: true
       plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
@@ -305,7 +310,7 @@ global_costmap:
         map_subscribe_transient_local: true
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 2.5
+        cost_scaling_factor: 2.0
         inflation_radius: 0.65
       always_send_full_costmap: false
 
