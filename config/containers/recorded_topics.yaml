@@ -12,6 +12,7 @@
 - /tf_static
 - /map
 - /amcl_pose
+- /robot_pose_map
 - /particle_cloud
 - /cmd_vel
 - /cmd_vel_auto
@@ -28,6 +29,7 @@
 - /camera/realsense/imu
 - /scan_filtered
 - /camera/realsense/color/image_compressed
+- /camera/realsense/color/image_raw/compressed
 - /camera/realsense/color/camera_info
 - /camera/realsense/imu/gyro
 - /camera/realsense/imu/accel
@@ -38,3 +40,9 @@
 - /plan
 - /local_plan
 - /global_costmap/published_footprint
+# Jetson anomaly pipeline outputs, published back through rosbridge.
+- /anomaly/events
+- /anomaly/events/readable
+- /anomaly/markers
+- /anomaly/debug_image/compressed
+- /anomaly/map_snapshot/compressed
