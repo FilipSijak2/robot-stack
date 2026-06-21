@@ -17,6 +17,7 @@
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
       - ./config/containers/nav2_params.yaml:/app/nav2_params.yaml
+      - ./config/containers/navigate_to_pose_stable.xml:/app/navigate_to_pose_stable.xml:ro
       - ./config/containers/collision_monitor_params.yaml:/app/collision_monitor_params.yaml:ro
       - ./config/containers/map.yaml:/app/map.yaml:ro
       - ./srv:/srv
