@@ -1,5 +1,8 @@
 # Extended Kalman Filter configuration for sensor fusion
-# Fuses rf2o laser odometry with RealSense D455 IMU yaw-rate support.
+# Fuses rf2o laser odometry position with RealSense D455 IMU yaw-rate support.
+# RF2O yaw/twist is intentionally not fused: the 2026-06-21 driving bags showed
+# scan-matching angular spikes around +/-1.8 rad/s while the robot command/IMU
+# stayed below about +/-0.45 rad/s, which made Nav2 over-correct turns.
 # IMU linear accelerations are excluded: RealSense D455 MEMS accelerometer is too noisy
 # (~±0.1 m/s² at rest vs ~1.5 m/s² peak) for reliable double-integration into position.
 # Legacy Arduino IMU remains available on /imu/arduino for fallback/debug.
@@ -21,7 +24,9 @@ ekf_filter_node:
     base_link_frame: base_link
     world_frame: odom
 
-    # Odometry configuration (laser scan matching via rf2o - zamjena za wheel enkodere)
+    # Odometry configuration (laser scan matching via rf2o).
+    # Use RF2O for x/y position only. Let the gyro own yaw-rate so local TF does
+    # not jump during in-place or tight rotations.
     odom0: /odom_rf2o
     odom0_config: [
       true,
@@ -29,13 +34,13 @@ ekf_filter_node:
       false,  # x, y, z positions
       false,
       false,
-      true,  # roll, pitch, yaw orientations
-      true,
-      true,
+      false,  # roll, pitch, yaw orientations
+      false,
+      false,
       false,  # x, y, z velocities
       false,
       false,
-      true,  # roll, pitch, yaw velocities
+      false,  # roll, pitch, yaw velocities
       false,
       false,
       false,
