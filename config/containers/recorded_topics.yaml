@@ -2,7 +2,8 @@
 # RealSense topics use the /camera/realsense/ prefix (RS_CAMERA_NAME=realsense
 # inside a namespace=camera container).
 # `/imu/data` is the filtered RealSense IMU in camera optical axes.
-# `/imu/base_link` is the transformed gyro topic used by EKF and motor assist.
+# `/imu/base_link` is the transformed gyro topic used by motor assist/debug.
+# `/imu/base_link_corrected` is bias-corrected yaw-rate fused into EKF.
 # `/imu/arduino` is kept as a legacy fallback/debug stream.
 - /scan
 - /wheel_odom
@@ -25,6 +26,7 @@
 - /collision_monitor_state
 - /imu/data
 - /imu/base_link
+- /imu/base_link_corrected
 - /imu/arduino
 - /camera/realsense/imu
 - /scan_filtered
