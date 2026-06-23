@@ -35,24 +35,24 @@ collision_monitor:
 
     front_stop:
       type: "polygon"
-      points: [0.29, 0.15, 0.29, -0.15, 0.06, -0.15, 0.06, 0.15]
+      points: [0.27, 0.14, 0.27, -0.14, 0.06, -0.14, 0.06, 0.14]
       action_type: "stop"
-      max_points: 1
+      max_points: 2
       visualize: true
       polygon_pub_topic: "/collision_monitor/front_stop"
       enabled: true
 
     front_slow:
       type: "polygon"
-      points: [0.55, 0.24, 0.55, -0.24, 0.10, -0.24, 0.10, 0.24]
+      points: [0.50, 0.21, 0.50, -0.21, 0.10, -0.21, 0.10, 0.21]
       action_type: "slowdown"
       # Keep a warning zone, but do not starve in-place rotations of torque.
       # With 0.55 the 2026-06-21 180-degree turn bags were reduced to ~0.13
       # rad/s and the drivetrain stalled.
-      slowdown_ratio: 0.80
+      slowdown_ratio: 0.90
       # Require a small cluster before slowdown so scan speckles do not keep
       # toggling velocity while Nav2 is trying to finish a goal.
-      max_points: 4
+      max_points: 6
       visualize: true
       polygon_pub_topic: "/collision_monitor/front_slow"
       enabled: true
@@ -72,7 +72,7 @@ collision_monitor:
       footprint_topic: "/local_costmap/published_footprint"
       time_before_collision: 1.5
       simulation_time_step: 0.02
-      max_points: 3
+      max_points: 5
       visualize: false
       enabled: true
 

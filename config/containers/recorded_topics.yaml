@@ -33,6 +33,8 @@
 - /camera/realsense/color/image_compressed
 - /camera/realsense/color/image_raw/compressed
 - /camera/realsense/color/camera_info
+- /camera/realsense/aligned_depth_to_color/image_raw
+- /camera/realsense/aligned_depth_to_color/camera_info
 - /camera/realsense/imu/gyro
 - /camera/realsense/imu/accel
 - /cmd_vel_joy
