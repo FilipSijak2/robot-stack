@@ -368,12 +368,23 @@ planner_server:
 smoother_server:
   ros__parameters:
     use_sim_time: false
+    costmap_topic: global_costmap/costmap_raw
+    footprint_topic: global_costmap/published_footprint
+    robot_base_frame: base_link
+    transform_timeout: 0.2
     smoother_plugins: ["simple_smoother"]
     simple_smoother:
       plugin: "nav2_smoother::SimpleSmoother"
       tolerance: 1.0e-10
       max_its: 1000
       do_refinement: true
+      refinement_num: 2
+      # NavFn can produce small grid-level left/right artifacts in corridors.
+      # Keep enough data weight to avoid corner cutting, but smooth those
+      # single-cell wiggles before DWB sees the path.
+      w_data: 0.22
+      w_smooth: 0.38
+      enforce_path_inversion: false
 
 behavior_server:
   ros__parameters:
