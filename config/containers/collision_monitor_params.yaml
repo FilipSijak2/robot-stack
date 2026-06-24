@@ -35,16 +35,22 @@ collision_monitor:
 
     front_stop:
       type: "polygon"
-      points: [0.27, 0.14, 0.27, -0.14, 0.06, -0.14, 0.06, 0.14]
+      # Keep the hard stop centered in front of the robot. The 2026-06-24
+      # hallway bag showed diagonal wall returns at the old +/-0.14 m edges,
+      # which held the monitor in stop and prevented reverse recovery.
+      points: [0.24, 0.10, 0.24, -0.10, 0.08, -0.10, 0.08, 0.10]
       action_type: "stop"
-      max_points: 2
+      max_points: 4
       visualize: true
       polygon_pub_topic: "/collision_monitor/front_stop"
       enabled: true
 
     front_slow:
       type: "polygon"
-      points: [0.50, 0.21, 0.50, -0.21, 0.10, -0.21, 0.10, 0.21]
+      # Narrower than before so normal hallway walls do not constantly toggle
+      # the slowdown state. Directional prediction is still handled by the
+      # footprint_approach polygon below.
+      points: [0.42, 0.16, 0.42, -0.16, 0.12, -0.16, 0.12, 0.16]
       action_type: "slowdown"
       # Keep a warning zone, but do not starve in-place rotations of torque.
       # With 0.55 the 2026-06-21 180-degree turn bags were reduced to ~0.13
@@ -52,7 +58,7 @@ collision_monitor:
       slowdown_ratio: 0.90
       # Require a small cluster before slowdown so scan speckles do not keep
       # toggling velocity while Nav2 is trying to finish a goal.
-      max_points: 6
+      max_points: 12
       visualize: true
       polygon_pub_topic: "/collision_monitor/front_slow"
       enabled: true
@@ -70,8 +76,10 @@ collision_monitor:
       type: "polygon"
       action_type: "approach"
       footprint_topic: "/local_costmap/published_footprint"
-      time_before_collision: 1.5
-      simulation_time_step: 0.02
+      # At the current slow speeds, 1.0 s prediction is enough and avoids
+      # over-conservative braking while backing away from a front obstacle.
+      time_before_collision: 1.0
+      simulation_time_step: 0.05
       max_points: 5
       visualize: false
       enabled: true

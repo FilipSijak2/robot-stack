@@ -43,6 +43,11 @@
 # Nav2 global path.
 - /plan
 - /local_plan
+- /local_costmap/costmap_raw
+- /local_costmap/published_footprint
+- /collision_monitor/front_stop
+- /collision_monitor/front_slow
+- /collision_monitor/rear_stop
 - /global_costmap/published_footprint
 # Jetson anomaly pipeline outputs, published back through rosbridge.
 - /anomaly/events

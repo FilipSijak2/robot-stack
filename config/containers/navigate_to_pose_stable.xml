@@ -30,7 +30,7 @@
             <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
             <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
           </Sequence>
-          <BackUp backup_dist="0.15" backup_speed="0.03"/>
+          <BackUp backup_dist="0.20" backup_speed="0.025"/>
           <Wait wait_duration="2"/>
         </RoundRobin>
       </ReactiveFallback>
