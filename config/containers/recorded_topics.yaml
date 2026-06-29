@@ -21,6 +21,7 @@
 - /cmd_vel_smoothed
 - /cmd_vel_safety_in
 - /cmd_vel_safety_status
+- /experiment_event
 - /manual_mode
 - /cmd_vel_collision_in
 - /collision_monitor_state

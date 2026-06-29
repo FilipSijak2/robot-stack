@@ -292,6 +292,7 @@
     volumes:
       - ./config/containers/recorded_topics.yaml:/config/recorded_topics.yaml:ro
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
+      - ./scripts/experiment_event.py:/app/experiment_event.py:ro
       - ./tmp/bags_in_progress:/bags_in_progress
       - ./bags:/bags
     depends_on:
