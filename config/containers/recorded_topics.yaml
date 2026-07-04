@@ -55,4 +55,8 @@
 - /anomaly/events/readable
 - /anomaly/markers
 - /anomaly/debug_image/compressed
+- /anomaly/inspection/request
+- /anomaly/inspection/status
+- /anomaly/inspection/result
+- /anomaly/inspection/privacy_image/compressed
 - /anomaly/map_snapshot/compressed
