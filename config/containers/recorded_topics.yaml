@@ -43,6 +43,11 @@
 - /pose
 # Nav2 global path.
 - /plan
+# Output of nav2_smoother/SimpleSmoother used by FollowPath.
+- /smoothed_path
+# Runtime compatibility: some deployed Nav2 images/republishers expose the
+# smoothed global path under this name.
+- /plan_smoothed
 - /local_plan
 - /local_costmap/costmap_raw
 - /local_costmap/published_footprint
