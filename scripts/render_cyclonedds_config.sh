@@ -19,7 +19,7 @@ if [ -f .env ]; then
     done < .env
 fi
 
-: "${JETSON_TAILSCALE_IP:=100.125.121.125}"
+: "${JETSON_TAILSCALE_IP:=}"
 : "${JETSON_DDS_DISCOVERY_PORT:=7410}"
 : "${ENABLE_JETSON_DDS_PEER:=0}"
 : "${PI_DDS_WIFI_INTERFACE:=wlan0}"
@@ -29,6 +29,15 @@ export JETSON_DDS_DISCOVERY_PORT
 export ENABLE_JETSON_DDS_PEER
 export PI_DDS_WIFI_INTERFACE
 export PI_DDS_TAILSCALE_INTERFACE
+
+case "${ENABLE_JETSON_DDS_PEER,,}" in
+    1|true|yes|on)
+        if [ -z "$JETSON_TAILSCALE_IP" ]; then
+            echo "[render_cyclonedds] JETSON_TAILSCALE_IP is required when the Jetson DDS peer is enabled." >&2
+            exit 1
+        fi
+        ;;
+esac
 
 template="config/cyclonedds.xml.template"
 target="config/cyclonedds.xml"

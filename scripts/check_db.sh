@@ -76,13 +76,13 @@ else
 fi
 
 if [ -z "$CID" ]; then
-	err "Target '$TARGET' nije pronađen ni kao compose servis ni kao container."
+	err "Target '$TARGET' was not found as a Compose service or container."
 	exit 2
 fi
 
 RUNNING=$(docker inspect -f '{{.State.Running}}' "$CID" 2>/dev/null || echo false)
 if [ "$RUNNING" != "true" ]; then
-	err "Target '$TARGET' postoji (ID=$CID) ali nije Running."
+	err "Target '$TARGET' exists (ID=$CID) but is not running."
 	exit 2
 fi
 ok "Target ($MODE) je running (ID: $CID)."
@@ -91,7 +91,7 @@ exec_compose() { "${COMPOSE_CMD[@]}" exec -T "$TARGET" "$@"; }
 exec_container() { docker exec -i "$CID" "$@"; }
 run_exec() { if [ "$MODE" = compose ]; then exec_compose "$@"; else exec_container "$@"; fi; }
 
-log "Čekam Postgres (timeout ${DB_WAIT_TIMEOUT}s)..."
+log "Waiting for PostgreSQL (timeout: ${DB_WAIT_TIMEOUT}s)..."
 ATT=0
 # If user left defaults but container uses custom POSTGRES_USER/POSTGRES_DB, auto-adjust before waiting
 if [ "$DB_USER" = "postgres" ] || [ "$DB_NAME" = "postgres" ]; then
@@ -99,26 +99,26 @@ if [ "$DB_USER" = "postgres" ] || [ "$DB_NAME" = "postgres" ]; then
 	CONTAINER_POSTGRES_USER=$(run_exec /bin/sh -c "echo \${POSTGRES_USER:-}" 2>/dev/null || true)
 	CONTAINER_POSTGRES_DB=$(run_exec /bin/sh -c "echo \${POSTGRES_DB:-}" 2>/dev/null || true)
 	if [ -n "$CONTAINER_POSTGRES_USER" ] && [ "$DB_USER" = "postgres" ]; then
-		warn "DB_USER nije specificiran; auto-detektiran POSTGRES_USER=$CONTAINER_POSTGRES_USER"
+		warn "DB_USER was not specified; detected POSTGRES_USER=$CONTAINER_POSTGRES_USER"
 		DB_USER="$CONTAINER_POSTGRES_USER"
 	fi
 	if [ -n "$CONTAINER_POSTGRES_DB" ] && [ "$DB_NAME" = "postgres" ]; then
-		warn "DB_NAME nije specificiran; auto-detektiran POSTGRES_DB=$CONTAINER_POSTGRES_DB"
+		warn "DB_NAME was not specified; detected POSTGRES_DB=$CONTAINER_POSTGRES_DB"
 		DB_NAME="$CONTAINER_POSTGRES_DB"
 	fi
 fi
 while :; do
 	if run_exec pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; then
-		ok "Postgres prihvaća konekcije."
+		ok "PostgreSQL is accepting connections."
 		break
 	fi
 	if run_exec psql -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT 1" >/dev/null 2>&1; then
-		ok "Postgres prihvaća konekcije (psql fallback)."
+		ok "PostgreSQL is accepting connections (psql fallback)."
 		break
 	fi
 	ATT=$((ATT + 1))
 	if [ "$ATT" -ge "$DB_WAIT_TIMEOUT" ]; then
-		err "Postgres nije dostupan u ${DB_WAIT_TIMEOUT}s."
+		err "PostgreSQL was not available within ${DB_WAIT_TIMEOUT}s."
 		exit 3
 	fi
 	sleep 1

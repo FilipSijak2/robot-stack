@@ -5,7 +5,7 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/nav:${NAV_TAG}
     container_name: nav_cont
     network_mode: host
-    cpu_shares: 2048  # DWB controller 20Hz + AMCL trebaju brz odgovor
+    cpu_shares: 2048  # DWB at 20 Hz and AMCL require responsive scheduling.
     env_file:
       - ./config/containers/nav_cont.env
     environment:
@@ -55,7 +55,7 @@
   laser_driver:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/laser_driver:${DRIVER_TAG}
     container_name: laser_driver_cont
-    cpu_shares: 1024  # LiDAR driver: čitanje podataka kritično za SLAM i Nav2
+    cpu_shares: 1024  # LiDAR input is time-critical for SLAM and Nav2.
     env_file:
       - ./config/containers/laser_driver.env
     environment:
@@ -78,7 +78,7 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/slam:${SLAM_TAG}
     container_name: slam_cont
     network_mode: host
-    cpu_shares: 1024  # Loop closure može spikati, ali ne smije gladovati
+    cpu_shares: 1024  # Loop closure can spike, but the service must not be starved.
     depends_on:
       - database_cont
     volumes:
@@ -110,7 +110,7 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/sensor_fusion:${SENSOR_FUSION_TAG}
     container_name: sensor_fusion_cont
     network_mode: host
-    cpu_shares: 2048  # EKF 30Hz — kašnjenje degradira lokalizaciju
+    cpu_shares: 2048  # EKF at 30 Hz; delays degrade localization.
     env_file:
       - ./config/containers/sensor_fusion_cont.env
     environment:
@@ -136,7 +136,7 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/bridge:${BRIDGE_TAG}
     container_name: robot_bridge_cont
     network_mode: host
-    cpu_shares: 4096  # Najviši prioritet: motor control 50Hz mora biti pouzdan
+    cpu_shares: 4096  # Highest priority: motor control at 50 Hz must remain reliable.
     env_file:
       - ./config/containers/robot_bridge.env
       - ./config/containers/bridge_rpi_direct.env
@@ -166,7 +166,7 @@
   ai_kit_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/ai_kit:${AI_KIT_TAG}
     container_name: ai_kit_cont
-    cpu_shares: 512   # Hailo NPU radi inferenciju hardverski, CPU samo prenosi framove
+    cpu_shares: 512   # The Hailo NPU handles inference; the CPU transfers frames.
     env_file:
       - ./config/containers/ai_kit_cont.env
     environment:
@@ -186,7 +186,7 @@
       - /lib/firmware:/lib/firmware
       - /run/udev:/run/udev:ro
       # Hailo runtime from host (installed via 'sudo apt install hailo-all').
-      # Mounts the prebuilt libs directly â€” no downloading inside the container.
+      # Mount the prebuilt libraries directly; the container does not download them.
       - /usr/lib/libhailort.so:/usr/lib/libhailort.so:ro
       - /usr/lib/hailo:/usr/lib/hailo:ro
       - /usr/lib/aarch64-linux-gnu/libhailort.so.4:/usr/lib/aarch64-linux-gnu/libhailort.so.4:ro
@@ -224,7 +224,7 @@
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/foxglove_bridge:${FOXGLOVE_BRIDGE_TAG}
     container_name: foxglove_bridge_cont
     network_mode: host
-    cpu_shares: 256   # Vizualizacija: najniži prioritet od kritičnih servisa
+    cpu_shares: 256   # Visualization has the lowest priority among critical services.
     env_file:
       - ./config/containers/foxglove_bridge.env
     environment:
@@ -237,28 +237,12 @@
       - rosbridge_websocket
     restart: always
 
-  # Camera Driver (CSI, ROS2 raw publisher)
-  # camera_cont:
-  #   image: ${REGISTRY_HOST}/${IMAGE_OWNER}/camera:${CAMERA_TAG}
-  #   container_name: camera_cont
-  #   network_mode: host
-  #   privileged: true
-  #   devices:
-  #     - /dev:/dev
-  #   environment:
-  #     - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
-  #     - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-  #     - ROS_NAMESPACE=camera
-  #   volumes:
-  #     - ./config/containers/camera_info.yaml:/app/camera_info.yaml:ro
-  #   restart: always
-
   # RealSense D455
   realsense_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/realsense:${REALSENSE_TAG}
     container_name: realsense_cont
     network_mode: host
-    cpu_shares: 512   # USB DMA uglavnom kernelski, ali encoding pointclouda treba CPU
+    cpu_shares: 512   # USB DMA is handled by the kernel, while point-cloud encoding uses CPU.
     privileged: true
     volumes:
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
@@ -300,7 +284,7 @@
       - foxglove_bridge
     restart: always
 
-  # File browser â€” browse bags and logs from a web browser.
+  # Read-only browser for bags and logs.
   # Access at: http://<pi-ip>:8080  (no login required)
   # Shows two folders: bags/ and logs/
   bag_browser:
