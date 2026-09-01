@@ -41,6 +41,7 @@ The tracked files under `config/containers` are the active mounted runtime confi
 | File | Purpose |
 | --- | --- |
 | `bridge_rpi_direct.env` | GPIO pins, drivetrain geometry and motor behavior |
+| `drive_profiles/*.env` | Selected surface dynamics and motor transition safety |
 | `nav_cont.env` | command routing, safety, inspection and pose persistence |
 | `nav2_params.yaml` | Nav2 planners, controllers and costmaps |
 | `collision_monitor_params.yaml` | collision-monitor zones and sources |

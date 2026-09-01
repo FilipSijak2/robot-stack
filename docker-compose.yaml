@@ -140,10 +140,16 @@
     env_file:
       - ./config/containers/robot_bridge.env
       - ./config/containers/bridge_rpi_direct.env
+      # Later files override earlier values. DRIVE_PROFILE is persisted in the
+      # ignored root .env by scripts/select_drive_profile.sh.
+      - ./config/drive_profiles/${DRIVE_PROFILE:-safe-demo}.env
     environment:
       BRIDGE_MODE: ${BRIDGE_MODE:-serial_legacy}
       CYCLONEDDS_URI: ${CYCLONEDDS_URI:-file:///etc/ros/cyclonedds.xml}
       IMU_TOPIC: ${BRIDGE_IMU_TOPIC:-/imu/arduino}
+      # One global switch overrides the selected profile for both PWM slew and
+      # the reversal neutral interlock.
+      MOTOR_SLEW_ENABLED: ${MOTOR_SLEW_ENABLED:-1}
       RMW_IMPLEMENTATION: ${RMW_IMPLEMENTATION}
       ROS_DOMAIN_ID: ${ROS_DOMAIN_ID}
       SERIAL_BAUD: ${BRIDGE_SERIAL_BAUD:-115200}

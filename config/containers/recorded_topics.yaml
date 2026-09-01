@@ -40,6 +40,7 @@
 - /camera/realsense/imu/accel
 - /cmd_vel_joy
 - /robot_status
+- /motor_pwm
 - /pose
 # Nav2 global path.
 - /plan
