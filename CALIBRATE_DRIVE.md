@@ -36,7 +36,7 @@ From the `robot-stack` checkout on the Raspberry Pi:
 
 ```bash
 bash scripts/calibrate_drive.sh --surface laminate
-bash scripts/calibrate_drive.sh --surface carpet
+bash /calibrate_drive.sh --surface carpetscripts
 ```
 
 Three repetitions of every forward and rotation command are run by default.
@@ -46,6 +46,23 @@ large test area:
 
 ```bash
 bash scripts/calibrate_drive.sh --surface carpet --include-reverse
+```
+
+First run a short torque-focused retest after changing the carpet rotation
+mapping:
+
+```bash
+bash scripts/calibrate_drive.sh --surface carpet \
+  --rotation-only --duration 1.5 --repeats 3
+```
+
+Only if `0.10 rad/s` still cannot break static friction, use one short extended
+sweep while holding the physical motor cutoff; the higher commands can produce
+substantially more PWM with the carpet profile:
+
+```bash
+bash scripts/calibrate_drive.sh --surface carpet \
+  --rotation-only --extended-rotation --duration 1.0 --repeats 1
 ```
 
 Use `--continuous` only in a bounded calibration area with a physical emergency
@@ -119,3 +136,17 @@ in `.env`, then apply it with:
 ```bash
 docker compose up -d --no-deps --force-recreate robot_bridge
 ```
+
+For a temporary runtime change without recreating the container, use the live
+ROS 2 parameter. It controls both transition behaviors:
+
+```bash
+docker exec -it robot_bridge_cont bash -lc \
+  'source /opt/ros/humble/setup.bash && ros2 param set /robot_rpi_direct_bridge motor_slew_enabled false'
+
+docker exec -it robot_bridge_cont bash -lc \
+  'source /opt/ros/humble/setup.bash && ros2 param set /robot_rpi_direct_bridge motor_slew_enabled true'
+```
+
+This temporary value resets to the `MOTOR_SLEW_ENABLED` environment setting
+when `robot_bridge` restarts.

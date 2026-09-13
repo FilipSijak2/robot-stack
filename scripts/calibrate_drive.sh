@@ -16,6 +16,8 @@ Options are forwarded to /app/drive_calibration.py inside nav_cont:
   --settle <seconds>     Settling time before final pose, 0.3..5.0 (default: 1.0)
   --repeats <count>      Repetitions per command, 1..10 (default: 3)
   --include-reverse      Include reverse straight-line tests
+  --rotation-only        Run only in-place rotation trials
+  --extended-rotation    Add higher-torque +/-0.13 and +/-0.16 rad/s trials
   --continuous           Do not pause before each movement (less safe)
   --yes                  Skip the initial typed CALIBRATE confirmation
   --odom-topic <topic>   Measurement topic (default: /odometry/filtered)
