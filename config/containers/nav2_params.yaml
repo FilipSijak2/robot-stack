@@ -225,12 +225,12 @@ controller_server:
       # The previous 0.85 m forward point looked beyond nearby corners and
       # encouraged DWB to cut the bend toward the goal. Track the local segment
       # of the global plan instead.
-      PathAlign.scale: 4.0
-      PathAlign.forward_point_distance: 0.40
+      PathAlign.scale: 10.0
+      PathAlign.forward_point_distance: 0.25
       GoalAlign.scale: 1.5
-      GoalAlign.forward_point_distance: 0.40
-      PathDist.scale: 32.0
-      GoalDist.scale: 14.0
+      GoalAlign.forward_point_distance: 0.25
+      PathDist.scale: 40.0
+      GoalDist.scale: 8.0
       RotateToGoal.scale: 24.0
       RotateToGoal.slowing_factor: 18.0
       RotateToGoal.lookahead_time: 0.5
