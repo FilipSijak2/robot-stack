@@ -69,7 +69,8 @@ container_logging:
   log_dir: /logs
   state_file: /logs/.container-log-state.json
   date_folder_format: "%-d-%-m-%Y"
-  scan_interval_seconds: 5
+  scan_interval_seconds: 30
   reconnect_delay_seconds: 3
+  state_flush_interval_seconds: 30
   include_containers: []
   exclude_containers: []
