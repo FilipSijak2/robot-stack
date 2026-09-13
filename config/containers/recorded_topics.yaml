@@ -1,68 +1,36 @@
-# List ROS topics to record, one per line as a YAML array.
-# RealSense topics use the /camera/realsense/ prefix (RS_CAMERA_NAME=realsense
-# inside a namespace=camera container).
-# `/imu/data` is the filtered RealSense IMU in camera optical axes.
-# `/imu/base_link` is the transformed gyro topic used by motor assist/debug.
-# `/imu/base_link_corrected` is bias-corrected yaw-rate fused into EKF.
-# `/imu/arduino` is kept as a legacy fallback/debug stream.
-- /scan
-- /wheel_odom
+- /scan_filtered
+
 - /odom_rf2o
 - /odometry/filtered
+- /amcl_pose
+- /robot_pose_map
+
 - /tf
 - /tf_static
 - /map
-- /amcl_pose
-- /robot_pose_map
-- /particle_cloud
+
 - /cmd_vel
 - /cmd_vel_auto
 - /cmd_vel_nav
 - /cmd_vel_smoothed
+- /cmd_vel_collision_in
 - /cmd_vel_safety_in
 - /cmd_vel_safety_status
-- /experiment_event
-- /manual_mode
-- /cmd_vel_collision_in
-- /collision_monitor_state
-- /imu/data
-- /imu/base_link
+
 - /imu/base_link_corrected
-- /imu/arduino
-- /camera/realsense/imu
-- /scan_filtered
-- /camera/realsense/color/image_compressed
-- /camera/realsense/color/image_raw/compressed
-- /camera/realsense/color/camera_info
-- /camera/realsense/aligned_depth_to_color/image_raw
-- /camera/realsense/aligned_depth_to_color/camera_info
-- /camera/realsense/imu/gyro
-- /camera/realsense/imu/accel
-- /cmd_vel_joy
-- /robot_status
+
 - /motor_pwm
-- /pose
-# Nav2 global path.
+- /robot_status
+
 - /plan
-# Output of nav2_smoother/SimpleSmoother used by FollowPath.
 - /smoothed_path
-# Runtime compatibility: some deployed Nav2 images/republishers expose the
-# smoothed global path under this name.
-- /plan_smoothed
 - /local_plan
-- /local_costmap/costmap_raw
-- /local_costmap/published_footprint
-- /collision_monitor/front_stop
-- /collision_monitor/front_slow
-- /collision_monitor/rear_stop
-- /global_costmap/published_footprint
-# Jetson anomaly pipeline outputs, published back through rosbridge.
+
+- /collision_monitor_state
+- /experiment_event
+
 - /anomaly/events
 - /anomaly/events/readable
 - /anomaly/markers
-- /anomaly/debug_image/compressed
-- /anomaly/inspection/request
 - /anomaly/inspection/status
 - /anomaly/inspection/result
-- /anomaly/inspection/privacy_image/compressed
-- /anomaly/map_snapshot/compressed

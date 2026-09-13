@@ -272,6 +272,7 @@
   bag_recorder_cont:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/bag_recorder:${BAG_RECORDER_TAG}
     container_name: bag_recorder_cont
+    cpu_shares: 256
     network_mode: host
     env_file:
       - ./config/containers/bag_recorder_cont.env
@@ -307,6 +308,7 @@
   container_log_collector:
     image: ${REGISTRY_HOST}/${IMAGE_OWNER}/healthcheck:${HEALTHCHECK_TAG}
     container_name: container_log_collector_cont
+    cpu_shares: 256
     env_file:
       - ./config/containers/container_log_collector.env
     environment:
@@ -343,6 +345,6 @@
       - /dev:/dev:ro
       - /run/udev:/run/udev:ro
       - ./config/cyclonedds.xml:/etc/ros/cyclonedds.xml:ro
-    restart: always
+    restart: "no"
 volumes:
   hailo_examples_data: {}

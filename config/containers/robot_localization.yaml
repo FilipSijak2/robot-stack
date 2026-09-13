@@ -9,7 +9,7 @@
 
 ekf_filter_node:
   ros__parameters:
-    frequency: 30.0
+    frequency: 20.0
     # RF2O is around 7-10 Hz in the current bags, so 0.1 s makes TF go stale
     # between valid scan-odom updates. AMCL /initialpose needs a fresh
     # odom->base_link transform when Foxglove publishes the pose.
@@ -18,7 +18,7 @@ ekf_filter_node:
     publish_tf: true
     transform_time_offset: 0.05
     transform_timeout: 0.0
-    print_diagnostics: true
+    print_diagnostics: false
     debug: false
 
     # Frame configuration
