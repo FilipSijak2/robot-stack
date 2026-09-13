@@ -36,7 +36,7 @@ From the `robot-stack` checkout on the Raspberry Pi:
 
 ```bash
 bash scripts/calibrate_drive.sh --surface laminate
-bash /calibrate_drive.sh --surface carpetscripts
+bash scripts/calibrate_drive.sh --surface carpet
 ```
 
 Three repetitions of every forward and rotation command are run by default.
@@ -53,7 +53,7 @@ mapping:
 
 ```bash
 bash scripts/calibrate_drive.sh --surface carpet \
-  --rotation-only --duration 1.5 --repeats 3
+  --rotation-only --ramp-seconds 1.5 --duration 1.5 --repeats 3
 ```
 
 Only if `0.10 rad/s` still cannot break static friction, use one short extended
@@ -80,15 +80,34 @@ The script:
    it compensates `MANUAL_SPEED_SCALE` and `MANUAL_ANGULAR_SCALE` from the
    container environment so report commands represent values after the mux;
 4. publishes an explicit zero command after every timed pulse;
-5. publishes another stop and restores automatic mode during cleanup, including
-   after Ctrl+C or a failed measurement.
+5. publishes another stop during cleanup, including after Ctrl+C or a failed
+   measurement, and leaves manual mode selected. Resume navigation explicitly
+   only after checking any previously active goal.
+
+ROS callbacks continue running while the operator answers prompts. Odometry
+must have advancing source timestamps no older than 0.5 seconds; receipt time
+alone cannot make a queued old pose fresh. A stale pose during motion aborts
+the trial and sends zero commands.
+
+Each trial now commands motion for `--ramp-seconds` PLUS `--duration`.
+For example, 1.5 + 1.5 means three seconds of commanded motion. The ramp phase
+is an observation interval, not a change to the bridge slew settings or a
+guarantee that PWM has stabilized. Adaptive boost can still change during hold.
+Both phases get separate CSV/JSON rows (`phase=ramp` and `phase=hold`); summary
+values use hold rows only. Speed uses the actual difference between the two
+odometry source timestamps, excluding post-stop settling. Check source stamps
+against the bag to align trials. Reports have `metadata.schema_version=2`.
+PWM averages are restricted to each phase using callback receipt times. The
+existing `/motor_pwm` message has no source timestamp, so transport latency
+cannot be removed from those averages.
 
 If cleanup reports a critical failure, switch off motor power before doing
 anything else.
 
 ## Results
 
-Reports are stored under `calibration_results/` by default:
+Reports are stored under `/srv/calibration_results/` in the container, exposed
+as `srv/calibration_results/` in the stack checkout:
 
 ```text
 drive-calibration-laminate-YYYYMMDD-HHMMSS.csv

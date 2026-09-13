@@ -12,8 +12,9 @@ Usage: bash scripts/calibrate_drive.sh --surface <laminate|carpet|safe-demo> [op
 
 Options are forwarded to /app/drive_calibration.py inside nav_cont:
   --surface <name>       Required: laminate, carpet or safe-demo
-  --duration <seconds>   Command pulse duration, 1.0..5.0 (default: 2.5)
-  --settle <seconds>     Settling time before final pose, 0.3..5.0 (default: 1.0)
+  --duration <seconds>   Hold duration excluding ramp, 1.0..5.0 (default: 1.5)
+  --ramp-seconds <sec>   Ramp observation phase, 0.5..3.0 (default: 1.5)
+  --settle <seconds>     Rest after stop, excluded from measurements (default: 1.0)
   --repeats <count>      Repetitions per command, 1..10 (default: 3)
   --include-reverse      Include reverse straight-line tests
   --rotation-only        Run only in-place rotation trials
